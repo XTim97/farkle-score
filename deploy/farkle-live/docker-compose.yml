@@ -1,0 +1,28 @@
+services:
+  farkle-score:
+    container_name: farkle-score
+    build:
+      context: ../..
+      dockerfile: deploy/Dockerfile
+    expose:
+      - "8787"
+    volumes:
+      # Plain file on the host so backup is a copy, restore is a copy back.
+      - /srv/farkle/data:/data
+    restart: unless-stopped
+
+  caddy:
+    image: caddy:2.10.2
+    container_name: farkle-caddy
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    restart: unless-stopped
+
+volumes:
+  caddy-data:
+  caddy-config:

@@ -1,0 +1,20 @@
+{
+	# Caddy obtains and renews the Let's Encrypt cert automatically.
+	# Cloudflare sits in front (proxied DNS record, SSL mode "Full (strict)").
+	email {$ACME_EMAIL}
+}
+
+farkle.live {
+	encode gzip
+	reverse_proxy farkle-score:8787
+
+	header {
+		# The app is served same-origin only; keep the basics on.
+		X-Content-Type-Options nosniff
+		Referrer-Policy no-referrer
+	}
+}
+
+www.farkle.live {
+	redir https://farkle.live{uri} permanent
+}
