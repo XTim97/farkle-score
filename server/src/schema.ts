@@ -7,6 +7,13 @@ export const players = sqliteTable("players", {
   createdAt: text("created_at").notNull()
 });
 
+export const rulesets = sqliteTable("rulesets", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  name: text("name").notNull().unique(),
+  configJson: text("config_json").notNull(),
+  createdAt: text("created_at").notNull()
+});
+
 export const games = sqliteTable("games", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   startedAt: text("started_at").notNull(),

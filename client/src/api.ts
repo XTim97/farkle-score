@@ -1,10 +1,17 @@
-import type { GameState } from "@farkle/engine";
+import type { GameState, Ruleset } from "@farkle/engine";
 
 export interface ApiPlayer {
   id: number;
   name: string;
   color: string | null;
   createdAt: string;
+}
+
+export interface ApiRuleset {
+  id: number;
+  name: string;
+  createdAt: string;
+  config: Ruleset;
 }
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
@@ -26,6 +33,35 @@ export function createPlayer(name: string): Promise<ApiPlayer> {
 
 export function deletePlayer(id: number): Promise<void> {
   return request(`/api/players/${id}`, { method: "DELETE" });
+}
+
+export function fetchRulesets(): Promise<ApiRuleset[]> {
+  return request("/api/rulesets");
+}
+
+async function rulesetRequest(path: string, method: string, config: Ruleset): Promise<ApiRuleset> {
+  const res = await fetch(path, {
+    method,
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(config)
+  });
+  if (!res.ok) {
+    const body = (await res.json().catch(() => null)) as { errors?: string[] } | null;
+    throw new Error(body?.errors?.join(". ") ?? `Save failed (${res.status})`);
+  }
+  return res.json() as Promise<ApiRuleset>;
+}
+
+export function createRuleset(config: Ruleset): Promise<ApiRuleset> {
+  return rulesetRequest("/api/rulesets", "POST", config);
+}
+
+export function updateRuleset(id: number, config: Ruleset): Promise<ApiRuleset> {
+  return rulesetRequest(`/api/rulesets/${id}`, "PUT", config);
+}
+
+export function deleteRuleset(id: number): Promise<void> {
+  return request(`/api/rulesets/${id}`, { method: "DELETE" });
 }
 
 /** Persist a finished game. Engine player ids are stringified server ids. */

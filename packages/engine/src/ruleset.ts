@@ -15,6 +15,32 @@ export interface Ruleset {
   comboPoints: Partial<Record<ComboKey, number>>;
 }
 
+/** Returns human-readable problems; empty array means the ruleset is playable. */
+export function validateRuleset(r: Ruleset): string[] {
+  const errors: string[] = [];
+  if (!r.name?.trim()) errors.push("Name is required");
+  if (!Number.isInteger(r.winningScore) || r.winningScore < 1000) {
+    errors.push("Winning score must be at least 1,000");
+  }
+  if (!Number.isInteger(r.entryThreshold) || r.entryThreshold < 0) {
+    errors.push("Entry threshold cannot be negative");
+  }
+  if (!Number.isInteger(r.threeFarklePenalty) || r.threeFarklePenalty < 0) {
+    errors.push("Three-farkle penalty cannot be negative");
+  }
+  const enabled = COMBOS.filter((c) => r.comboPoints[c.key] != null);
+  if (enabled.length === 0) {
+    errors.push("Enable at least one scoring combination");
+  }
+  for (const combo of enabled) {
+    const points = r.comboPoints[combo.key]!;
+    if (!Number.isInteger(points) || points <= 0) {
+      errors.push(`${combo.label} points must be a positive whole number`);
+    }
+  }
+  return errors;
+}
+
 export const DEFAULT_RULESET: Ruleset = {
   name: "House Rules",
   winningScore: 10000,

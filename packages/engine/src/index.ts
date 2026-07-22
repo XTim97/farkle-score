@@ -26,4 +26,4 @@ export {
   rollVsBank,
   type OddsResult
 } from "./odds.js";
-export { DEFAULT_RULESET, type Ruleset } from "./ruleset.js";
+export { DEFAULT_RULESET, validateRuleset, type Ruleset } from "./ruleset.js";

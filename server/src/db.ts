@@ -21,6 +21,13 @@ sqlite.exec(`
     created_at TEXT NOT NULL DEFAULT (datetime('now'))
   );
 
+  CREATE TABLE IF NOT EXISTS rulesets (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL UNIQUE,
+    config_json TEXT NOT NULL,
+    created_at TEXT NOT NULL DEFAULT (datetime('now'))
+  );
+
   CREATE TABLE IF NOT EXISTS games (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     started_at TEXT NOT NULL,

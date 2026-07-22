@@ -6,6 +6,7 @@ import { db } from "./db.js";
 import { players } from "./schema.js";
 import { gamesRoute } from "./routes/games.js";
 import { playersRoute } from "./routes/players.js";
+import { rulesetsRoute } from "./routes/rulesets.js";
 
 const app = new Hono();
 
@@ -20,6 +21,7 @@ app.get("/api/health", (c) =>
 
 app.route("/api/players", playersRoute);
 app.route("/api/games", gamesRoute);
+app.route("/api/rulesets", rulesetsRoute);
 
 // Production: serve the built client. In dev, Vite serves the client and proxies /api here.
 app.use("/*", serveStatic({ root: "./client-dist" }));

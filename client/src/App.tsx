@@ -7,32 +7,46 @@ import {
   scoreCombo,
   undoLast,
   type ComboKey,
-  type GameState
+  type GameState,
+  type Ruleset
 } from "@farkle/engine";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { saveGame, type ApiPlayer } from "./api.js";
+import { saveGame, type ApiPlayer, type ApiRuleset } from "./api.js";
 import ArrangeOrderScreen from "./components/ArrangeOrderScreen.js";
 import GameScreen from "./components/GameScreen.js";
 import HomeScreen from "./components/HomeScreen.js";
 import InstructionsScreen from "./components/InstructionsScreen.js";
 import PlayerSelectScreen from "./components/PlayerSelectScreen.js";
+import RulesetEditor from "./components/RulesetEditor.js";
+import RulesetsScreen from "./components/RulesetsScreen.js";
 import WinnerScreen from "./components/WinnerScreen.js";
 
-type Screen = "home" | "players" | "order" | "game" | "instructions";
+type Screen =
+  | "home"
+  | "players"
+  | "order"
+  | "game"
+  | "instructions"
+  | "rulesets"
+  | "ruleset-edit";
 
 export default function App() {
   const [screen, setScreen] = useState<Screen>("home");
   const [roster, setRoster] = useState<ApiPlayer[]>([]);
   const [game, setGame] = useState<GameState | null>(null);
   const [saveState, setSaveState] = useState<"idle" | "saved" | "failed">("idle");
+  const [editingRuleset, setEditingRuleset] = useState<ApiRuleset | null>(null);
   const startedAtRef = useRef("");
+  const rulesetRef = useRef<Ruleset>(DEFAULT_RULESET);
 
-  const startGame = useCallback((ordered: ApiPlayer[]) => {
+  const startGame = useCallback((ordered: ApiPlayer[], ruleset?: Ruleset) => {
+    const rules = ruleset ?? rulesetRef.current;
+    rulesetRef.current = rules;
     const first = Math.floor(Math.random() * ordered.length);
     setGame(
       createGame(
         ordered.map((p) => ({ id: String(p.id), name: p.name })),
-        DEFAULT_RULESET,
+        rules,
         first
       )
     );
@@ -66,11 +80,26 @@ export default function App() {
       <HomeScreen
         onNewGame={() => setScreen("players")}
         onInstructions={() => setScreen("instructions")}
+        onRulesets={() => setScreen("rulesets")}
       />
     );
   }
   if (screen === "instructions") {
     return <InstructionsScreen onBack={() => setScreen("home")} />;
+  }
+  if (screen === "rulesets") {
+    return (
+      <RulesetsScreen
+        onBack={() => setScreen("home")}
+        onEdit={(ruleset) => {
+          setEditingRuleset(ruleset);
+          setScreen("ruleset-edit");
+        }}
+      />
+    );
+  }
+  if (screen === "ruleset-edit") {
+    return <RulesetEditor editing={editingRuleset} onDone={() => setScreen("rulesets")} />;
   }
   if (screen === "players") {
     return (
@@ -88,7 +117,7 @@ export default function App() {
       <ArrangeOrderScreen
         players={roster}
         onBack={() => setScreen("players")}
-        onStart={startGame}
+        onStart={(ordered, ruleset) => startGame(ordered, ruleset)}
       />
     );
   }
