@@ -265,3 +265,14 @@ h2.wb-label{font-size:.85rem;letter-spacing:.14em;text-transform:uppercase;color
 .wb-stats .stat-value{font-size:1.4rem}
 .wb-ticker{display:flex;align-items:center;gap:10px;color:var(--muted);font-size:.9rem;font-weight:600;overflow:hidden;white-space:nowrap}
 .sudden-banner{font-size:1.3rem;font-family:'Sora Variable',sans-serif;letter-spacing:.06em;display:flex;justify-content:center;align-items:center;gap:14px}
+/* ===== Winner celebration takeover ===== */
+@keyframes confetti-loop{0%{transform:translateY(-12vh) rotate(0)}100%{transform:translateY(112vh) rotate(720deg)}}
+.celebration{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;padding:32px;position:relative;overflow:hidden;animation:screen-in .35s cubic-bezier(.22,1,.36,1)}
+.confetti-loop{position:absolute;top:0;width:10px;height:14px;border-radius:2px;pointer-events:none;animation:confetti-loop 3s linear infinite}
+.trophy{font-size:5rem;line-height:1;animation:trophy-bounce 1.6s ease-in-out infinite}
+.celebration h1{font-size:clamp(2.2rem,10vw,3.4rem);line-height:1.05;margin:0}
+.celebration .winning-score{font-size:2.2rem}
+.game-summary{color:var(--muted);font-weight:700;text-align:center;margin:0}
+.celebration .standings{width:min(480px,100%);margin-top:10px}
+.celebration .standings .sb-score{font-size:1.2rem}
+.celebration-actions{display:flex;gap:12px;margin-top:8px;flex-wrap:wrap;justify-content:center}
