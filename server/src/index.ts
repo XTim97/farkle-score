@@ -4,6 +4,8 @@ import { DEFAULT_RULESET } from "@farkle/engine";
 import { Hono } from "hono";
 import { db } from "./db.js";
 import { players } from "./schema.js";
+import { gamesRoute } from "./routes/games.js";
+import { playersRoute } from "./routes/players.js";
 
 const app = new Hono();
 
@@ -15,6 +17,9 @@ app.get("/api/health", (c) =>
     players: db.select().from(players).all().length
   })
 );
+
+app.route("/api/players", playersRoute);
+app.route("/api/games", gamesRoute);
 
 // Production: serve the built client. In dev, Vite serves the client and proxies /api here.
 app.use("/*", serveStatic({ root: "./client-dist" }));

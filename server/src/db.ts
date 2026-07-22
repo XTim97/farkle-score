@@ -11,7 +11,8 @@ export const sqlite = new Database(path.join(dataDir, "farkle.db"));
 sqlite.pragma("journal_mode = WAL");
 sqlite.pragma("foreign_keys = ON");
 
-// Phase 0 bootstrap; replaced by drizzle-kit migrations in Phase 1.
+// Bootstrap DDL; to be replaced by drizzle-kit migrations when the schema
+// starts changing shape rather than just growing.
 sqlite.exec(`
   CREATE TABLE IF NOT EXISTS players (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -19,6 +20,44 @@ sqlite.exec(`
     color TEXT,
     created_at TEXT NOT NULL DEFAULT (datetime('now'))
   );
+
+  CREATE TABLE IF NOT EXISTS games (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    started_at TEXT NOT NULL,
+    ended_at TEXT NOT NULL,
+    winner_id INTEGER REFERENCES players(id),
+    ruleset_json TEXT NOT NULL
+  );
+
+  CREATE TABLE IF NOT EXISTS game_players (
+    game_id INTEGER NOT NULL REFERENCES games(id),
+    player_id INTEGER NOT NULL REFERENCES players(id),
+    seat_order INTEGER NOT NULL,
+    final_score INTEGER NOT NULL,
+    PRIMARY KEY (game_id, player_id)
+  );
+
+  CREATE TABLE IF NOT EXISTS turns (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    game_id INTEGER NOT NULL REFERENCES games(id),
+    player_id INTEGER NOT NULL REFERENCES players(id),
+    turn_number INTEGER NOT NULL,
+    banked INTEGER NOT NULL,
+    farkled INTEGER NOT NULL,
+    penalty INTEGER NOT NULL DEFAULT 0
+  );
+
+  CREATE TABLE IF NOT EXISTS scoring_events (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    turn_id INTEGER NOT NULL REFERENCES turns(id),
+    combo_key TEXT NOT NULL,
+    points INTEGER NOT NULL,
+    dice_used INTEGER NOT NULL,
+    seq INTEGER NOT NULL
+  );
+
+  CREATE INDEX IF NOT EXISTS idx_turns_game ON turns(game_id);
+  CREATE INDEX IF NOT EXISTS idx_events_turn ON scoring_events(turn_id);
 `);
 
 export const db = drizzle(sqlite, { schema });

@@ -12,7 +12,7 @@ export interface Ruleset {
   /** Every player after the leader gets one final turn. */
   finalRound: boolean;
   /** Per-combo point overrides; combos absent from this map are disabled. */
-  comboPoints: Record<ComboKey, number>;
+  comboPoints: Partial<Record<ComboKey, number>>;
 }
 
 export const DEFAULT_RULESET: Ruleset = {
