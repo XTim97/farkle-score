@@ -1,5 +1,10 @@
 import { useMemo, useRef, useState } from "react";
-import type { GameDetail } from "../api.js";
+
+/** The subset of GameDetail the chart needs; the live watch board synthesizes it. */
+export interface RaceData {
+  players: Array<{ playerId: number; name: string; seatOrder: number }>;
+  turns: Array<{ playerId: number; banked: number; penalty: number }>;
+}
 
 interface Series {
   playerId: number;
@@ -23,7 +28,7 @@ function niceStep(rough: number): number {
   return 10 * pow;
 }
 
-export default function RaceChart({ detail }: { detail: GameDetail }) {
+export default function RaceChart({ detail }: { detail: RaceData }) {
   const series = useMemo<Series[]>(() => {
     const byPlayer = new Map<number, Series>(
       detail.players.map((p) => [

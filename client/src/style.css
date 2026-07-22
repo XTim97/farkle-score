@@ -228,3 +228,40 @@ button.roll-chip,.turn-actions .secondary.roll,.turn-actions button:first-child{
 .odds-pref{display:flex;flex-direction:column;gap:.35rem;border-top:1px solid var(--border);padding-top:.5rem}
 .odds-pref-label{font-size:.8rem;color:var(--muted)}
 .turn-odds{color:var(--muted);font-size:.8rem;font-variant-numeric:tabular-nums}
+/* ===== Watch board (game-show spectator view, tablet landscape) ===== */
+.watch-board{min-height:100vh;max-width:1200px;margin:0 auto;display:flex;flex-direction:column;gap:18px;padding:22px 26px;animation:screen-in .35s cubic-bezier(.22,1,.36,1)}
+.wb-header{display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap}
+.wb-title{margin:0;text-align:left;font-size:2rem;letter-spacing:.02em}
+.wb-title .accent{color:var(--accent)}
+.wb-meta{display:flex;align-items:center;gap:14px}
+.wb-round{font-family:'Sora Variable',sans-serif;font-weight:700;color:var(--muted)}
+.wb-live{box-shadow:inset 0 0 0 1px var(--border);display:inline-flex;align-items:center;gap:8px}
+.wb-grid{flex:1;display:grid;grid-template-columns:1.1fr 1fr;gap:18px;align-items:stretch}
+@media (max-width:900px){.wb-grid{grid-template-columns:1fr}}
+.wb-col{display:flex;flex-direction:column;gap:10px;min-width:0}
+h2.wb-label{font-size:.85rem;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.wb-board{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px}
+.wb-row{display:flex;align-items:center;gap:14px;background:var(--panel);box-shadow:var(--panel-shadow),inset 0 0 0 1px var(--border);border-radius:18px;padding:14px 18px;transition:box-shadow .3s}
+.wb-row.rolling{box-shadow:inset 0 0 0 2px var(--primary),0 0 20px var(--primary-glow)}
+.wb-row.trailing{opacity:.85}
+.wb-medal{font-family:'Sora Variable',sans-serif;font-weight:800;font-size:1.3rem;width:2rem;text-align:center;flex:none}
+.wb-medal.plain{font-size:1.1rem;color:var(--muted)}
+.wb-row .series-dot{width:.8rem;height:.8rem;flex:none}
+.wb-name{flex:1;font-weight:800;font-size:1.3rem;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rolling-tag{font-size:.8rem;color:var(--primary);font-family:'Sora Variable',sans-serif}
+.wb-row .sb-score{font-size:1.7rem}
+.wb-row .sb-behind{font-size:.85rem}
+.wb-chart{margin-top:auto}
+.wb-spotlight{flex:1;align-items:center;justify-content:center;text-align:center;gap:10px;padding:24px}
+.wb-spotlight .series-dot{width:1rem;height:1rem}
+.spotlight-name{font-family:'Sora Variable',sans-serif;font-weight:800;font-size:2.6rem;line-height:1}
+.spotlight-hot{font-weight:800;font-size:1.1rem}
+.spotlight-score{font-family:'Sora Variable',sans-serif;font-weight:800;font-size:4.2rem;line-height:1;color:var(--primary);text-shadow:0 0 24px var(--primary-glow)}
+.spotlight-sub{color:var(--muted);font-weight:700}
+.wb-spotlight .event-chips{justify-content:center;margin-top:6px}
+.wb-spotlight .odds-strip{width:100%;justify-content:center;margin-top:8px}
+.wb-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.wb-stats .stat-tile{padding:12px 8px}
+.wb-stats .stat-value{font-size:1.4rem}
+.wb-ticker{display:flex;align-items:center;gap:10px;color:var(--muted);font-size:.9rem;font-weight:600;overflow:hidden;white-space:nowrap}
+.sudden-banner{font-size:1.3rem;font-family:'Sora Variable',sans-serif;letter-spacing:.06em;display:flex;justify-content:center;align-items:center;gap:14px}
