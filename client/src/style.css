@@ -560,6 +560,19 @@ button.icon {
   font-size: 0.75rem;
 }
 
+.odds-pref {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  border-top: 1px solid var(--border);
+  padding-top: 0.5rem;
+}
+
+.odds-pref-label {
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
 .event-chips {
   display: flex;
   flex-wrap: wrap;

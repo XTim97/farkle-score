@@ -28,7 +28,10 @@ export {
   availableCombos,
   bestScoreForCounts,
   computeOdds,
+  countVectors,
+  multinomialWeight,
   rollVsBank,
+  usagesForCombo,
   type OddsResult
 } from "./odds.js";
 export { comboSetProbability, turnLikelihood } from "./probability.js";

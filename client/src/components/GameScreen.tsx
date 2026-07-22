@@ -92,7 +92,7 @@ export default function GameScreen({
           )}
         </div>
 
-        <OddsPanel game={game} />
+        <OddsPanel game={game} variant="scorer" />
 
         <RollChips rolls={game.turnRolls} />
 
