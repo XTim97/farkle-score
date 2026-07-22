@@ -208,7 +208,7 @@ export default function App() {
       <WinnerScreen
         game={game}
         saveState={saveState}
-        onRematch={() => startGame(roster)}
+        onRematch={() => setScreen("order")}
         onNewPlayers={() => setScreen("players")}
         onHome={() => {
           setGame(null);
