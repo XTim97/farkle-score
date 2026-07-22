@@ -1,0 +1,15 @@
+services:
+  farkle-score-v2:
+    container_name: farkle-score-v2
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile
+    # 8794 while the old v1.2.8 container holds 8793; Phase 6 swaps them.
+    ports:
+      - "8794:8787"
+    volumes:
+      - farkle-data:/data
+    restart: unless-stopped
+
+volumes:
+  farkle-data:

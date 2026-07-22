@@ -1,0 +1,24 @@
+:root {
+  color-scheme: light dark;
+  font-family: system-ui, sans-serif;
+}
+
+body {
+  margin: 0;
+  display: grid;
+  min-height: 100vh;
+  place-items: center;
+}
+
+.scaffold {
+  text-align: center;
+  padding: 2rem;
+}
+
+.health.ok {
+  color: #2e7d32;
+}
+
+.health.err {
+  color: #c62828;
+}

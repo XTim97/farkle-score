@@ -1,9 +1,0 @@
-Farkle Score v1.2.18
-
-Changes in this release:
-- Full House score changed from 750 to 850 points.
-- Small Straight score changed from 750 to 850 points.
-- Expanded the Player Instructions with a Scoring topic.
-- Added instructions for using scoring buttons, End Turn, Farkle, and Undo.
-- Added a complete list of all scoring combinations and point values.
-- Updated the app version and offline cache to v1.2.18.
