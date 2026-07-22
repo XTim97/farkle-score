@@ -1,0 +1,33 @@
+<!-- @dsCard name="Player Stat Card" group="Components" subtitle="Collapsed header, expanded tile grids, luck & caution section" width="420" -->
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Player Stat Card - Farkle Score</title>
+<link rel="stylesheet" href="../styles.css">
+<style>body{padding:1rem}.ds-note{color:var(--muted);font-size:.75rem;margin:1rem 0 0}</style>
+</head>
+<body>
+
+  <section class="stat-card">
+    <button class="stat-card-head"><strong>Nick</strong><span class="rs-summary">3 wins in 7 games · 22% farkle <span>▸</span></span></button>
+  </section>
+  <section class="stat-card" style="margin-top:.6rem">
+    <button class="stat-card-head"><strong>Matt</strong><span class="rs-summary">4 wins in 7 games · 18% farkle <span>▾</span></span></button>
+    <div class="stat-grid">
+      <div class="stat-tile"><span class="stat-value">57%</span><span class="stat-label">win rate</span></div>
+      <div class="stat-tile"><span class="stat-value">412</span><span class="stat-label">avg turn</span></div>
+      <div class="stat-tile"><span class="stat-value">18%</span><span class="stat-label">farkle rate</span></div>
+    </div>
+    <div class="stat-section-label">🍀 Luck &amp; 🛡️ Caution</div>
+    <div class="stat-grid">
+      <div class="stat-tile"><span class="stat-value">+1.3</span><span class="stat-label">farkles dodged vs expected</span></div>
+      <div class="stat-tile"><span class="stat-value">108%</span><span class="stat-label">roll yield vs expected</span></div>
+      <div class="stat-tile"><span class="stat-value">2.4</span><span class="stat-label">rolls per turn</span></div>
+    </div>
+    <p class="stat-footnote">Luck is measured over 84 tracked rolls.</p>
+  </section>
+<p class="ds-note">Farkle Score v3 · Player Stat Card</p>
+</body>
+</html>

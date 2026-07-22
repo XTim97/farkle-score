@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<!-- @template name="Winner Celebration" description="Full-screen game-over takeover: trophy, winner glow, confetti, final standings" -->
+<helmet><script src="./ds-base.js"></script>
+<style>@keyframes confetti-loop{0%{transform:translateY(-12vh) rotate(0)}100%{transform:translateY(112vh) rotate(720deg)}}</style>
+</helmet>
+<div data-screen-label="Winner Celebration" style="min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;padding:32px;position:relative;overflow:hidden;font-family:'Nunito',system-ui">
+<span style="position:absolute;top:0;left:6vw;width:10px;height:14px;border-radius:2px;background:var(--primary);animation:confetti-loop 3.1s linear infinite;animation-delay:0s"></span>
+<span style="position:absolute;top:0;left:16vw;width:9px;height:13px;border-radius:2px;background:var(--accent);animation:confetti-loop 2.6s linear infinite;animation-delay:.7s"></span>
+<span style="position:absolute;top:0;left:26vw;width:11px;height:15px;border-radius:2px;background:var(--info);animation:confetti-loop 3.4s linear infinite;animation-delay:.3s"></span>
+<span style="position:absolute;top:0;left:36vw;width:9px;height:12px;border-radius:2px;background:var(--danger);animation:confetti-loop 2.8s linear infinite;animation-delay:1.2s"></span>
+<span style="position:absolute;top:0;left:46vw;width:10px;height:14px;border-radius:2px;background:var(--series-5);animation:confetti-loop 3s linear infinite;animation-delay:.5s"></span>
+<span style="position:absolute;top:0;left:56vw;width:9px;height:13px;border-radius:2px;background:var(--accent);animation:confetti-loop 2.5s linear infinite;animation-delay:1.6s"></span>
+<span style="position:absolute;top:0;left:66vw;width:11px;height:15px;border-radius:2px;background:var(--primary);animation:confetti-loop 3.3s linear infinite;animation-delay:.9s"></span>
+<span style="position:absolute;top:0;left:76vw;width:10px;height:13px;border-radius:2px;background:var(--info);animation:confetti-loop 2.7s linear infinite;animation-delay:.2s"></span>
+<span style="position:absolute;top:0;left:86vw;width:9px;height:14px;border-radius:2px;background:var(--series-5);animation:confetti-loop 3.2s linear infinite;animation-delay:1.4s"></span>
+<span style="position:absolute;top:0;left:94vw;width:10px;height:13px;border-radius:2px;background:var(--danger);animation:confetti-loop 2.9s linear infinite;animation-delay:.6s"></span>
+<div style="font-size:5rem;line-height:1;animation:trophy-bounce 1.6s ease-in-out infinite">🏆</div>
+<h1 style="margin:0;font-size:3.4rem;line-height:1.05">Matt wins!</h1>
+<div style="font-family:'Sora',sans-serif;font-weight:800;font-size:2.2rem;color:var(--primary);text-shadow:0 0 24px var(--primary-glow)">10,150 points</div>
+<div style="color:var(--muted);font-weight:700">8 rounds · biggest turn 1,850 · 🔥 2 hot-dice runs</div>
+<ol class="standings" style="width:min(480px,100%);margin-top:10px">
+<li class="winner-row"><span>🥇 Matt</span><span class="sb-score" style="font-size:1.2rem">10,150</span></li>
+<li><span>🥈 Tim</span><span class="sb-score" style="font-size:1.2rem">9,400</span></li>
+<li><span>🥉 Nick</span><span class="sb-score" style="font-size:1.2rem">7,400</span></li>
+<li><span>4 · Ivan</span><span class="sb-score" style="font-size:1.2rem">3,050</span></li>
+</ol>
+<div style="display:flex;gap:12px;margin-top:8px">
+<button class="primary big">🎲 Rematch</button>
+<button class="big">📊 Full stats</button>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1180,&quot;height&quot;:800}}"></script>
+</body>
+</html>

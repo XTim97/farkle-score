@@ -1,0 +1,33 @@
+<!-- @dsCard name="Turn Panel" group="Components" subtitle="Header, dice counter, hot dice state, turn score" width="420" -->
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Turn Panel - Farkle Score</title>
+<link rel="stylesheet" href="../styles.css">
+<style>body{padding:1rem}.ds-note{color:var(--muted);font-size:.75rem;margin:1rem 0 0}</style>
+</head>
+<body>
+
+  <section class="turn-panel">
+    <div class="turn-head"><h2>Tim</h2><span class="dice-left">🎲 × 3 <em class="hot">🔥1</em></span></div>
+    <div class="turn-score">Turn: <strong>1,250</strong></div>
+    <div class="event-chips">
+      <span class="chip">Large Straight +1500</span>
+      <span class="chip roll-chip">↻ 6</span>
+      <span class="chip">Three 5s +500</span>
+      <span class="chip roll-chip">↻ 3</span>
+      <span class="chip">Single 1 +100</span>
+    </div>
+  </section>
+  <section class="turn-panel" style="margin-top:.8rem">
+    <div class="turn-head"><h2>Hot dice state</h2><span class="dice-left">🔥 Hot dice! Roll all 6</span></div>
+    <div class="turn-actions" style="margin-top:.4rem">
+      <button class="secondary" disabled>↻ Roll</button>
+      <button class="primary">🏦 Bank 2,100</button>
+    </div>
+  </section>
+<p class="ds-note">Farkle Score v3 · Turn Panel</p>
+</body>
+</html>

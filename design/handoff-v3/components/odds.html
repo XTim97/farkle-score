@@ -1,0 +1,29 @@
+<!-- @dsCard name="Odds Strip & Panel" group="Components" subtitle="Risk tiers (low/mid/high), expanded verdict + per-combo odds" width="420" -->
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Odds Strip & Panel - Farkle Score</title>
+<link rel="stylesheet" href="../styles.css">
+<style>body{padding:1rem}.ds-note{color:var(--muted);font-size:.75rem;margin:1rem 0 0}</style>
+</head>
+<body>
+
+  <div class="stack" style="margin-top:0">
+    <button class="odds-strip low"><span>Farkle risk <strong>2.3%</strong> · roll EV ~511</span><span>▸</span></button>
+    <button class="odds-strip mid"><span>Farkle risk <strong>27.8%</strong> · roll EV ~84</span><span>▸</span></button>
+    <button class="odds-strip high"><span>Farkle risk <strong>66.7%</strong> · roll EV ~25</span><span>▾</span></button>
+  </div>
+  <div class="odds-panel" style="margin-top:.6rem">
+    <p class="odds-verdict">Banking favored: rolling costs ~642 points on average.</p>
+    <p class="odds-place">🏦 Bank now → <strong>2nd place</strong> at 9,150, 1,000 behind</p>
+    <ul class="odds-list">
+      <li><span>Single 1</span><span>16.7%</span></li>
+      <li><span>Single 5</span><span>16.7%</span></li>
+    </ul>
+    <p class="odds-note">Exact odds for the next roll of 1 die under this game's rules.</p>
+  </div>
+<p class="ds-note">Farkle Score v3 · Odds Strip & Panel</p>
+</body>
+</html>

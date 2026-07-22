@@ -1,0 +1,26 @@
+<!-- @dsCard name="Forms & Fields" group="Components" subtitle="Text/number inputs, select, toggles, combo editor rows" width="420" -->
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Forms & Fields - Farkle Score</title>
+<link rel="stylesheet" href="../styles.css">
+<style>body{padding:1rem}.ds-note{color:var(--muted);font-size:.75rem;margin:1rem 0 0}</style>
+</head>
+<body>
+
+  <section class="form-panel">
+    <label class="field"><span>Name</span><input value="Armstrong House Rules"></label>
+    <label class="field"><span>Winning score</span><input type="number" value="10000"></label>
+    <label class="field"><span>Rules</span><select><option>House Rules (built-in)</option><option>Penalty Rules</option></select></label>
+    <label class="field toggle"><input type="checkbox" checked><span>Hot dice: scoring all six rolls again</span></label>
+    <ul class="combo-edit-list" style="margin-top:.4rem">
+      <li><label class="combo-toggle"><input type="checkbox" checked><span>Three 1s</span></label><input type="number" value="300"></li>
+      <li><label class="combo-toggle"><input type="checkbox"><span>Full House</span></label><input type="number" disabled></li>
+    </ul>
+  </section>
+  <form class="add-player" style="margin-top:.8rem"><input placeholder="Player name"><button class="secondary">Add Player</button></form>
+<p class="ds-note">Farkle Score v3 · Forms & Fields</p>
+</body>
+</html>

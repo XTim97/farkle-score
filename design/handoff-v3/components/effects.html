@@ -1,0 +1,27 @@
+<!-- @dsCard name="Motion & Effects" group="Components" subtitle="Farkle shake, score pop, hot-dice glow, confetti, bouncy press" width="420" -->
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Motion & Effects - Farkle Score</title>
+<link rel="stylesheet" href="../styles.css">
+<style>body{padding:1rem}.ds-note{color:var(--muted);font-size:.75rem;margin:1rem 0 0}.fx-row{display:flex;gap:.5rem;align-items:center;margin-top:.6rem}</style>
+</head>
+<body>
+<p class="hint" style="text-align:left">Tap each to preview. All effects respect reduced-motion.</p>
+<div class="fx-row"><button class="danger" id="fxFarkle">💥 Farkle</button><span style="color:var(--muted);font-size:.85rem">shake on bust</span></div>
+<div class="fx-row"><button class="primary" id="fxBank">🏦 Bank 750</button><span style="color:var(--muted);font-size:.85rem">score pop + confetti</span></div>
+<div class="fx-row"><span class="dice-left">🎲 × 6 <em class="hot">🔥 Hot dice!</em></span><span style="color:var(--muted);font-size:.85rem">looping glow pulse</span></div>
+<div class="fx-row"><span class="turn-score">Turn: <strong id="fxScore">1,250</strong></span><span style="color:var(--muted);font-size:.85rem">pops on change</span></div>
+<div class="fx-row"><button id="fxRoll">↻ Roll <span id="fxDice" style="display:inline-block">🎲</span></button><span style="color:var(--muted);font-size:.85rem">dice tumble on roll</span></div>
+<p class="ds-note">Farkle Score v3 · Motion & Effects</p>
+<script>
+const $=(s)=>document.querySelector(s);
+$('#fxFarkle').addEventListener('click',(e)=>{const b=e.currentTarget;b.classList.remove('farkle-hit');void b.offsetWidth;b.classList.add('farkle-hit');});
+function confetti(){const colors=['#46c48c','#5aa7ff','#ffca5f','#ff5c5c','#e87ba4'];for(let i=0;i<40;i++){const c=document.createElement('span');c.className='confetti';c.style.left=Math.random()*100+'vw';c.style.background=colors[i%colors.length];c.style.animationDelay=(Math.random()*.4)+'s';c.style.animationDuration=(2+Math.random()*1.5)+'s';document.body.appendChild(c);setTimeout(()=>c.remove(),4000);}}
+$('#fxBank').addEventListener('click',()=>{confetti();const s=$('#fxScore');s.textContent=(1250+Math.floor(Math.random()*20)*50).toLocaleString();s.classList.remove('score-pop');void s.offsetWidth;s.classList.add('score-pop');});
+$('#fxRoll').addEventListener('click',()=>{const d=$('#fxDice');d.classList.remove('dice-roll');void d.offsetWidth;d.classList.add('dice-roll');});
+</script>
+</body>
+</html>

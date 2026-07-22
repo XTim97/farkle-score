@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<!-- @template name="Game Screen" description="Scorekeeper's main screen: scoreboard, turn panel, combos, odds, history" -->
+<helmet><script src="./ds-base.js"></script></helmet>
+<div class="screen" data-screen-label="Game Screen">
+<div class="screen-top"><button class="help-btn">?</button><button class="share-badge">📺 Live · K7MPQ2</button></div>
+<ul class="scoreboard">
+<li><span class="sb-name">🏁 Matt</span><span class="sb-col"><span class="sb-score">10,150</span></span></li>
+<li class="active"><span class="sb-name">Tim</span><span class="sb-col"><span class="sb-score">8,900</span><span class="sb-behind">-1,250</span></span></li>
+<li><span class="sb-name">Nick</span><span class="sb-col"><span class="sb-score">7,400</span><span class="sb-behind">-2,750</span></span></li>
+<li><span class="sb-name">Ivan</span><span class="sb-col"><span class="sb-score">3,050</span><span class="sb-behind">-7,100</span></span></li>
+</ul>
+<section class="turn-panel">
+<div class="turn-head"><h2>Tim</h2><span class="dice-left">🎲 × 3</span></div>
+<div class="turn-score">Turn: <strong>1,250</strong></div>
+<div class="event-chips"><span class="chip">Three 5s +500</span><span class="chip roll-chip">↻ 3</span><span class="chip">Single 1 +100</span></div>
+<div class="combo-grid">
+<button class="combo dice-1"><span class="combo-label">Single 1</span><span class="combo-points">100</span></button>
+<button class="combo dice-1"><span class="combo-label">Single 5</span><span class="combo-points">50</span></button>
+<button class="combo dice-3"><span class="combo-label">Three 4s</span><span class="combo-points">400</span></button>
+<button class="combo dice-4" disabled><span class="combo-label">Four of a Kind</span><span class="combo-points">1,000</span></button>
+</div>
+<button class="odds-strip mid"><span>Farkle risk <strong>27.8%</strong> · roll EV ~84</span><span>▸</span></button>
+<div class="turn-actions"><button>↻ Roll 3</button><button class="primary">🏦 Bank 1,250</button></div>
+</section>
+<button class="danger">💥 Farkle</button>
+<section class="history"><h3>This game</h3>
+<ul>
+<li><span class="turn-label">Tim · turn 8</span><span class="turn-detail">banked 750</span></li>
+<li class="farkled"><span class="turn-label">Matt · turn 8</span><span class="turn-detail">💥 farkled</span></li>
+<li><span class="turn-label">Nick · turn 7</span><span class="turn-detail">banked 400</span></li>
+</ul>
+</section>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:420,&quot;height&quot;:900}}"></script>
+</body>
+</html>
