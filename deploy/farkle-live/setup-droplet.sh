@@ -7,7 +7,7 @@ REPO="https://github.com/XTim97/farkle-score"
 BRANCH="feature/big-updates"
 APP_DIR="/srv/farkle"
 
-: "${ACME_EMAIL:?set ACME_EMAIL to the email for Let's Encrypt registration}"
+: "${ACME_EMAIL:?set ACME_EMAIL to the email for TLS certificate registration}"
 
 # 2G swap: image builds (npm ci + vite) do not fit in 1GB RAM alone
 if ! swapon --show | grep -q /swapfile; then
@@ -53,4 +53,4 @@ echo '15 4 * * * root /usr/local/bin/farkle-backup' > /etc/cron.d/farkle-backup
 # First deploy
 bash "$APP_DIR/repo/deploy/farkle-live/deploy.sh"
 
-echo "Done. Point farkle.live (proxied) at this droplet and set Cloudflare SSL to Full (strict)."
+echo "Done. With DNS pointed at this droplet, https://farkle.live should be live once certs issue."
