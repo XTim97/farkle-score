@@ -180,9 +180,10 @@ Data-flow invariants an agent must preserve:
    up). Confirm the winner screen, then check 📊 Stats (expanded player card) and 🕘 Game
    History → replay chart, turn list with 🎲 likelihood percentages.
 
-## 11. Current deployment (Matt's homelab, for context)
+## 11. Deployment notes
 
-- Runs on host `192.168.1.90` (icebox), port 8793, LAN + Tailscale access.
-- `./data` on that host is not yet in offsite backups (known open item).
-- A Claude Design project ("Farkle Score") mirrors the component library for front-end
-  design iteration; changes made there get folded back into `client/src/style.css`.
+- The reference deployment is the compose file as-is: one container on host port 8793,
+  reachable on the operator's private network. Details of any specific environment are
+  intentionally kept out of this repository.
+- Remember that `./data` on the deploy host is the only state; include it in whatever
+  backup scheme the host uses.

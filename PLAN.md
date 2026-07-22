@@ -1,8 +1,9 @@
 # Farkle App: Comprehensive Build Plan
 
-Status: **shipped as v2.0.0** (2026-07-21). All six phases complete; deployed on the
-homelab at http://192.168.1.90:8793. This branch (`feature/big-updates`) diverged
-permanently from the upstream repo; the v1 app and container are retired.
+Status: **shipped as v2.0.0** (2026-07-21). All six phases complete; deployed as a
+single Docker container (see `deploy/` and `BUILD.md`). This branch
+(`feature/big-updates`) diverged permanently from the upstream repo; the v1 app and
+container are retired.
 
 ## 1. Vision
 
@@ -135,7 +136,7 @@ audit trail.
 - Scorer's device drives the game (only one active scorer per game).
 - Server broadcasts game state over WebSocket to any number of viewer clients.
 - Viewers open a short URL / QR code shown on the scorer's screen; no accounts, no auth
-  beyond an unguessable game code. LAN/Tailscale only per hosting decision.
+  beyond an unguessable game code. Private-network only per hosting decision.
 - Viewer screen: scoreboard, current turn ticker, farkle-risk strip, final-round banner.
 
 ### 4.3 API sketch
