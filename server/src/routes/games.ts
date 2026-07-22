@@ -104,9 +104,15 @@ gamesRoute.get("/:id", (c) => {
       banked: t.banked,
       farkled: t.farkled,
       penalty: t.penalty,
+      rolls: t.rollsJson ? (JSON.parse(t.rollsJson) as number[]) : null,
       events: eventRows
         .filter((e) => e.turnId === t.id)
-        .map(({ comboKey, points, diceUsed }) => ({ comboKey, points, diceUsed }))
+        .map(({ comboKey, points, diceUsed, rollIndex }) => ({
+          comboKey,
+          points,
+          diceUsed,
+          rollIndex
+        }))
     }))
   });
 });
@@ -149,7 +155,8 @@ gamesRoute.post("/", async (c) => {
           turnNumber: turn.turnNumber,
           banked: turn.banked,
           farkled: turn.farkled,
-          penalty: turn.penalty
+          penalty: turn.penalty,
+          rollsJson: turn.rolls ? JSON.stringify(turn.rolls) : null
         })
         .returning()
         .get();
@@ -160,7 +167,8 @@ gamesRoute.post("/", async (c) => {
             comboKey: event.comboKey,
             points: event.points,
             diceUsed: event.diceUsed,
-            seq
+            seq,
+            rollIndex: event.rollIndex ?? null
           })
           .run();
       });

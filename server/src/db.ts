@@ -51,7 +51,8 @@ sqlite.exec(`
     turn_number INTEGER NOT NULL,
     banked INTEGER NOT NULL,
     farkled INTEGER NOT NULL,
-    penalty INTEGER NOT NULL DEFAULT 0
+    penalty INTEGER NOT NULL DEFAULT 0,
+    rolls_json TEXT
   );
 
   CREATE TABLE IF NOT EXISTS scoring_events (
@@ -60,11 +61,23 @@ sqlite.exec(`
     combo_key TEXT NOT NULL,
     points INTEGER NOT NULL,
     dice_used INTEGER NOT NULL,
-    seq INTEGER NOT NULL
+    seq INTEGER NOT NULL,
+    roll_index INTEGER
   );
 
   CREATE INDEX IF NOT EXISTS idx_turns_game ON turns(game_id);
   CREATE INDEX IF NOT EXISTS idx_events_turn ON scoring_events(turn_id);
 `);
+
+// Additive migrations for databases created before roll tracking. NULL in
+// these columns marks legacy turns whose roll boundaries are unknown.
+function ensureColumn(table: string, column: string, ddl: string) {
+  const cols = sqlite.prepare(`PRAGMA table_info(${table})`).all() as Array<{ name: string }>;
+  if (!cols.some((c) => c.name === column)) {
+    sqlite.exec(`ALTER TABLE ${table} ADD COLUMN ${ddl}`);
+  }
+}
+ensureColumn("turns", "rolls_json", "rolls_json TEXT");
+ensureColumn("scoring_events", "roll_index", "roll_index INTEGER");
 
 export const db = drizzle(sqlite, { schema });

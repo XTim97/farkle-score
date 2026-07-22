@@ -13,10 +13,10 @@ const ordinal = (n: number) => `${n}${["th", "st", "nd", "rd"][n % 10 <= 3 ? n %
 
 export default function OddsPanel({ game }: { game: GameState }) {
   const [open, setOpen] = useState(false);
-  const { turnScore, diceRemaining } = turnDerived(game);
+  const { turnScore, nextRollDice } = turnDerived(game);
   const odds = useMemo(
-    () => (diceRemaining > 0 ? computeOdds(diceRemaining, game.ruleset) : null),
-    [diceRemaining, game.ruleset]
+    () => (nextRollDice > 0 ? computeOdds(nextRollDice, game.ruleset) : null),
+    [nextRollDice, game.ruleset]
   );
 
   if (!odds) {

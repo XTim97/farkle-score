@@ -64,6 +64,59 @@ export default function StatsScreen({ onBack }: Props) {
               <span className="stat-label">hot-dice turns</span>
             </div>
           </div>
+          {(s.knownRolls > 0 || s.avgFatalRollProb != null || s.avgDiceLeftAtBank != null) && (
+            <>
+              <div className="stat-section-label">🍀 Luck &amp; 🛡️ Caution</div>
+              <div className="stat-grid">
+                {s.knownRolls > 0 && (
+                  <div className="stat-tile">
+                    <span className="stat-value">
+                      {(() => {
+                        const luck = s.expectedFarkles - s.knownFarkles;
+                        return `${luck >= 0 ? "+" : ""}${luck.toFixed(1)}`;
+                      })()}
+                    </span>
+                    <span className="stat-label">farkles dodged vs expected</span>
+                  </div>
+                )}
+                {s.knownRolls > 0 && s.expectedPoints > 0 && (
+                  <div className="stat-tile">
+                    <span className="stat-value">
+                      {Math.round((s.actualPoints / s.expectedPoints) * 100)}%
+                    </span>
+                    <span className="stat-label">roll yield vs expected</span>
+                  </div>
+                )}
+                {s.avgFatalRollProb != null && (
+                  <div className="stat-tile">
+                    <span className="stat-value">{(s.avgFatalRollProb * 100).toFixed(0)}%</span>
+                    <span className="stat-label">avg odds when farkled</span>
+                  </div>
+                )}
+                {s.avgDiceLeftAtBank != null && (
+                  <div className="stat-tile">
+                    <span className="stat-value">{s.avgDiceLeftAtBank.toFixed(1)}</span>
+                    <span className="stat-label">dice left at bank</span>
+                  </div>
+                )}
+                {s.knownRolls > 0 && (
+                  <div className="stat-tile">
+                    <span className="stat-value">
+                      {Math.round((s.riskyRolls / s.knownRolls) * 100)}%
+                    </span>
+                    <span className="stat-label">risky rolls (≤2 dice)</span>
+                  </div>
+                )}
+              </div>
+              {s.knownRolls > 0 && (
+                <p className="stat-footnote">
+                  Luck is measured over {s.knownRolls} tracked rolls. Above 100% yield or
+                  positive farkle-dodging = lucky; low dice-left and high risky-roll numbers =
+                  bold play.
+                </p>
+              )}
+            </>
+          )}
           {s.threeFarklePenalties > 0 && (
             <p className="stat-footnote">
               💥 Hit the three-farkle penalty {s.threeFarklePenalties}{" "}

@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 import {
   bankTurn,
   canBank,
+  canFarkle,
+  canRollAgain,
   canScoreCombo,
   canUndo,
   createGame,
@@ -9,6 +11,7 @@ import {
   DEFAULT_RULESET,
   EngineError,
   farkleTurn,
+  rollAgain,
   scoreCombo,
   turnDerived,
   undoLast,
@@ -26,27 +29,32 @@ function withRules(overrides: Partial<Ruleset>): Ruleset {
   return { ...DEFAULT_RULESET, ...overrides };
 }
 
-/** Bank exactly `points` for the current player using single 1s/5s across turns. */
+/** Bank exactly `points` using single 1s/5s, rolling again whenever dice run out. */
 function bankQuick(state: GameState, points: number): GameState {
   let s = state;
   let remaining = points;
+  const take = (key: "single1" | "single5") => {
+    if (!canScoreCombo(s, key)) s = rollAgain(s);
+    s = scoreCombo(s, key);
+  };
   while (remaining >= 100) {
-    s = scoreCombo(s, "single1");
+    take("single1");
     remaining -= 100;
   }
   while (remaining >= 50) {
-    s = scoreCombo(s, "single5");
+    take("single5");
     remaining -= 50;
   }
   return bankTurn(s);
 }
 
 describe("createGame", () => {
-  it("seats players in order with zero scores", () => {
+  it("seats players in order with zero scores and a fresh six-dice roll", () => {
     const g = createGame(THREE, DEFAULT_RULESET, 1);
     expect(g.players.map((p) => p.name)).toEqual(["Alice", "Bob", "Cara"]);
     expect(currentPlayer(g).name).toBe("Bob");
     expect(g.phase).toBe("playing");
+    expect(g.turnRolls).toEqual([{ diceCount: 6, events: [] }]);
   });
 
   it("rejects fewer than two players, duplicate ids, bad first index", () => {
@@ -63,41 +71,23 @@ describe("createGame", () => {
   });
 });
 
-describe("scoring and dice tracking", () => {
-  it("accumulates additive combos and consumes dice", () => {
+describe("scoring within a roll", () => {
+  it("accumulates additive combos from one roll and consumes its dice", () => {
     let g = createGame(TWO, DEFAULT_RULESET);
     g = scoreCombo(g, "fourOfAKind");
     g = scoreCombo(g, "single1");
     const d = turnDerived(g);
     expect(d.turnScore).toBe(1100);
     expect(d.diceRemaining).toBe(1);
+    expect(d.nextRollDice).toBe(1);
   });
 
-  it("blocks combos that need more dice than remain", () => {
+  it("blocks combos that need more dice than remain in the roll", () => {
     let g = createGame(TWO, DEFAULT_RULESET);
     g = scoreCombo(g, "triple2");
     expect(canScoreCombo(g, "largeStraight")).toBe(false);
     expect(() => scoreCombo(g, "smallStraight")).toThrow(EngineError);
     expect(canScoreCombo(g, "triple6")).toBe(true);
-  });
-
-  it("hot dice: scoring all six resets the budget and keeps the turn", () => {
-    let g = createGame(TWO, DEFAULT_RULESET);
-    g = scoreCombo(g, "largeStraight");
-    const d = turnDerived(g);
-    expect(d.diceRemaining).toBe(6);
-    expect(d.hotDiceCount).toBe(1);
-    g = scoreCombo(g, "sixOfAKind");
-    expect(turnDerived(g).turnScore).toBe(1500 + 3000);
-    expect(turnDerived(g).hotDiceCount).toBe(2);
-  });
-
-  it("hot dice off: zero dice locks further scoring", () => {
-    let g = createGame(TWO, withRules({ hotDice: false }));
-    g = scoreCombo(g, "threePairs");
-    expect(turnDerived(g).diceRemaining).toBe(0);
-    expect(canScoreCombo(g, "single5")).toBe(false);
-    expect(canBank(g)).toBe(true);
   });
 
   it("rejects combos disabled in the ruleset", () => {
@@ -116,8 +106,45 @@ describe("scoring and dice tracking", () => {
   });
 });
 
+describe("rolling again", () => {
+  it("requires keeping at least one combo first", () => {
+    const g = createGame(TWO, DEFAULT_RULESET);
+    expect(canRollAgain(g)).toBe(false);
+    expect(() => rollAgain(g)).toThrow(EngineError);
+  });
+
+  it("re-rolls the unscored dice", () => {
+    let g = createGame(TWO, DEFAULT_RULESET);
+    g = scoreCombo(g, "triple5");
+    g = rollAgain(g);
+    expect(g.turnRolls).toHaveLength(2);
+    expect(g.turnRolls[1]?.diceCount).toBe(3);
+    expect(turnDerived(g).diceRemaining).toBe(3);
+  });
+
+  it("hot dice: scoring all six brings back a full six-dice roll", () => {
+    let g = createGame(TWO, DEFAULT_RULESET);
+    g = scoreCombo(g, "largeStraight");
+    expect(turnDerived(g).nextRollDice).toBe(6);
+    g = rollAgain(g);
+    expect(g.turnRolls[1]?.diceCount).toBe(6);
+    expect(turnDerived(g).hotDiceCount).toBe(1);
+    g = scoreCombo(g, "sixOfAKind");
+    expect(turnDerived(g).turnScore).toBe(1500 + 3000);
+  });
+
+  it("hot dice off: zero unscored dice locks the turn", () => {
+    let g = createGame(TWO, withRules({ hotDice: false }));
+    g = scoreCombo(g, "threePairs");
+    expect(turnDerived(g).nextRollDice).toBe(0);
+    expect(canRollAgain(g)).toBe(false);
+    expect(canScoreCombo(g, "single5")).toBe(false);
+    expect(canBank(g)).toBe(true);
+  });
+});
+
 describe("undo", () => {
-  it("removes only the latest selection", () => {
+  it("removes the latest kept combo", () => {
     let g = createGame(TWO, DEFAULT_RULESET);
     g = scoreCombo(g, "triple4");
     g = scoreCombo(g, "single5");
@@ -127,13 +154,14 @@ describe("undo", () => {
     expect(d.diceRemaining).toBe(3);
   });
 
-  it("undo across a hot-dice boundary restores the pre-reset budget", () => {
+  it("undoes an empty re-roll, restoring the previous roll's dice", () => {
     let g = createGame(TWO, DEFAULT_RULESET);
-    g = scoreCombo(g, "largeStraight");
-    g = scoreCombo(g, "single1");
-    g = undoLast(g);
-    g = undoLast(g);
-    expect(turnDerived(g).diceRemaining).toBe(6);
+    g = scoreCombo(g, "triple4");
+    g = rollAgain(g);
+    expect(turnDerived(g).diceRemaining).toBe(3);
+    g = undoLast(g); // take back the roll
+    expect(g.turnRolls).toHaveLength(1);
+    g = undoLast(g); // take back the triple
     expect(turnDerived(g).turnScore).toBe(0);
     expect(canUndo(g)).toBe(false);
     expect(() => undoLast(g)).toThrow(EngineError);
@@ -141,19 +169,26 @@ describe("undo", () => {
 });
 
 describe("banking", () => {
-  it("banks the turn score, advances to the next player, resets the turn", () => {
+  it("banks, records rolls and roll-indexed events, advances", () => {
     let g = createGame(TWO, DEFAULT_RULESET);
     g = scoreCombo(g, "triple5");
+    g = rollAgain(g);
+    g = scoreCombo(g, "single1");
     g = bankTurn(g);
-    expect(g.players[0]?.score).toBe(500);
+    expect(g.players[0]?.score).toBe(600);
     expect(currentPlayer(g).name).toBe("Bob");
-    expect(g.turnEvents).toEqual([]);
-    expect(g.history).toHaveLength(1);
-    expect(g.history[0]).toMatchObject({ playerId: "a", banked: 500, farkled: false });
+    expect(g.history[0]).toMatchObject({ playerId: "a", banked: 600, farkled: false });
+    expect(g.history[0]?.rolls).toEqual([6, 3]);
+    expect(g.history[0]?.events.map((e) => e.rollIndex)).toEqual([0, 1]);
   });
 
-  it("refuses to bank nothing", () => {
-    const g = createGame(TWO, DEFAULT_RULESET);
+  it("refuses to bank nothing, or to bank a just-rolled untouched roll", () => {
+    let g = createGame(TWO, DEFAULT_RULESET);
+    expect(canBank(g)).toBe(false);
+    expect(() => bankTurn(g)).toThrow(EngineError);
+    g = scoreCombo(g, "triple5");
+    g = rollAgain(g);
+    // Rolled three dice but kept nothing: undo the roll or resolve it first.
     expect(canBank(g)).toBe(false);
     expect(() => bankTurn(g)).toThrow(EngineError);
   });
@@ -167,7 +202,6 @@ describe("banking", () => {
     expect(canBank(g)).toBe(true);
     g = bankTurn(g);
     expect(g.players[0]?.onBoard).toBe(true);
-    // Once on board, small banks are fine.
     g = bankQuick(g, 500); // Bob gets on board
     g = scoreCombo(g, "single5");
     expect(canBank(g)).toBe(true);
@@ -175,14 +209,25 @@ describe("banking", () => {
 });
 
 describe("farkle", () => {
-  it("scores nothing, keeps the events for the record, advances", () => {
+  it("only applies to a roll with nothing kept", () => {
     let g = createGame(TWO, DEFAULT_RULESET);
     g = scoreCombo(g, "single1");
+    expect(canFarkle(g)).toBe(false);
+    expect(() => farkleTurn(g)).toThrow(EngineError);
+    g = rollAgain(g);
+    expect(canFarkle(g)).toBe(true);
+  });
+
+  it("records the fatal roll's dice count, keeps kept events, advances", () => {
+    let g = createGame(TWO, DEFAULT_RULESET);
+    g = scoreCombo(g, "single1");
+    g = rollAgain(g);
     g = farkleTurn(g);
     expect(g.players[0]?.score).toBe(0);
     expect(g.players[0]?.consecutiveFarkles).toBe(1);
     expect(g.history[0]).toMatchObject({ farkled: true, banked: 0 });
     expect(g.history[0]?.events).toHaveLength(1);
+    expect(g.history[0]?.rolls).toEqual([6, 5]); // fatal roll was 5 dice
     expect(currentPlayer(g).name).toBe("Bob");
   });
 
@@ -214,7 +259,7 @@ describe("farkle", () => {
     let g = createGame(TWO, withRules({ threeFarklePenalty: 1000 }));
     g = farkleTurn(g);
     g = farkleTurn(g);
-    g = bankQuick(g, 100); // Alice banks, streak cleared
+    g = bankQuick(g, 100);
     expect(g.players[0]?.consecutiveFarkles).toBe(0);
   });
 });
@@ -272,11 +317,9 @@ describe("final round and winning", () => {
       g = scoreCombo(g, "sixOfAKind");
       g = bankTurn(g);
     }
-    // 3000/turn: Alice banks 4 turns to 12,000, Bob's final turn makes 4 x 3000 = 12,000...
-    // tie broken toward the earlier seat.
     expect(g.players[0]?.score).toBe(12000);
     expect(g.players[1]?.score).toBe(12000);
-    expect(g.winnerId).toBe("a");
+    expect(g.winnerId).toBe("a"); // tie breaks toward the earlier seat
     expect(g.history).toHaveLength(8);
   });
 });

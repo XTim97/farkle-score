@@ -45,7 +45,9 @@ export const turns = sqliteTable("turns", {
   turnNumber: integer("turn_number").notNull(),
   banked: integer("banked").notNull(),
   farkled: integer("farkled", { mode: "boolean" }).notNull(),
-  penalty: integer("penalty").notNull().default(0)
+  penalty: integer("penalty").notNull().default(0),
+  /** JSON array of dice counts per roll; null on legacy pre-roll-tracking turns. */
+  rollsJson: text("rolls_json")
 });
 
 export const scoringEvents = sqliteTable("scoring_events", {
@@ -56,5 +58,6 @@ export const scoringEvents = sqliteTable("scoring_events", {
   comboKey: text("combo_key").notNull(),
   points: integer("points").notNull(),
   diceUsed: integer("dice_used").notNull(),
-  seq: integer("seq").notNull()
+  seq: integer("seq").notNull(),
+  rollIndex: integer("roll_index")
 });

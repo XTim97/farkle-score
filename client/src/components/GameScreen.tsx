@@ -1,29 +1,40 @@
 import {
   canBank,
+  canFarkle,
+  canRollAgain,
   canScoreCombo,
   canUndo,
   COMBOS,
-  comboByKey,
   currentPlayer,
   turnDerived,
   type ComboKey,
   type GameState
 } from "@farkle/engine";
 import OddsPanel from "./OddsPanel.js";
+import RollChips from "./RollChips.js";
 import ShareBadge from "./ShareBadge.js";
 
 interface Props {
   game: GameState;
   liveCode: string | null;
   onScore: (key: ComboKey) => void;
+  onRoll: () => void;
   onUndo: () => void;
   onFarkle: () => void;
   onBank: () => void;
 }
 
-export default function GameScreen({ game, liveCode, onScore, onUndo, onFarkle, onBank }: Props) {
+export default function GameScreen({
+  game,
+  liveCode,
+  onScore,
+  onRoll,
+  onUndo,
+  onFarkle,
+  onBank
+}: Props) {
   const active = currentPlayer(game);
-  const { turnScore, diceRemaining, hotDiceCount } = turnDerived(game);
+  const { turnScore, diceRemaining, nextRollDice, hotDiceCount } = turnDerived(game);
   const combos = COMBOS.filter((c) => game.ruleset.comboPoints[c.key] != null);
   const leaderScore = Math.max(...game.players.map((p) => p.score));
 
@@ -70,15 +81,7 @@ export default function GameScreen({ game, liveCode, onScore, onUndo, onFarkle, 
 
         <OddsPanel game={game} />
 
-        {game.turnEvents.length > 0 && (
-          <div className="event-chips">
-            {game.turnEvents.map((e, i) => (
-              <span key={i} className="chip">
-                {comboByKey.get(e.comboKey)?.label} +{e.points}
-              </span>
-            ))}
-          </div>
-        )}
+        <RollChips rolls={game.turnRolls} />
 
         <div className="combo-grid">
           {combos.map((c) => (
@@ -98,14 +101,27 @@ export default function GameScreen({ game, liveCode, onScore, onUndo, onFarkle, 
         </div>
 
         <div className="turn-actions">
-          <button type="button" className="secondary" disabled={!canUndo(game)} onClick={onUndo}>
-            ↩️ Undo
-          </button>
-          <button type="button" className="danger" onClick={onFarkle}>
-            💥 Farkle
+          <button
+            type="button"
+            className="secondary"
+            disabled={!canRollAgain(game)}
+            onClick={onRoll}
+          >
+            ↻ Roll {canRollAgain(game) ? nextRollDice : ""}
           </button>
           <button type="button" className="primary" disabled={!canBank(game)} onClick={onBank}>
             🏦 Bank {turnScore > 0 ? turnScore.toLocaleString() : ""}
+          </button>
+          <button type="button" className="secondary" disabled={!canUndo(game)} onClick={onUndo}>
+            ↩️ Undo
+          </button>
+          <button
+            type="button"
+            className="danger"
+            disabled={!canFarkle(game)}
+            onClick={onFarkle}
+          >
+            💥 Farkle
           </button>
         </div>
       </section>

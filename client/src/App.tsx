@@ -4,6 +4,7 @@ import {
   DEFAULT_RULESET,
   EngineError,
   farkleTurn,
+  rollAgain,
   scoreCombo,
   undoLast,
   type ComboKey,
@@ -222,6 +223,7 @@ export default function App() {
         game={game}
         liveCode={liveCode}
         onScore={(key: ComboKey) => apply((g) => scoreCombo(g, key))}
+        onRoll={() => apply(rollAgain)}
         onUndo={() => apply(undoLast)}
         onFarkle={() => apply(farkleTurn)}
         onBank={() => apply(bankTurn)}

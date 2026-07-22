@@ -12,10 +12,11 @@ export default function InstructionsScreen({ onBack }: Props) {
       <section>
         <h2>Basics</h2>
         <p>
-          On your turn, roll all six dice. Tap a scoring button for each combination you set
-          aside; you can tap several per roll. Re-roll the dice you didn't score, or tap{" "}
-          <strong>Bank</strong> to end your turn and keep the points. If a roll has no scoring
-          dice, tap <strong>Farkle</strong>: the turn ends and the whole turn's points are lost.
+          On your turn, roll all six dice. Tap a scoring button for each combination you keep;
+          you can tap several from the same roll. Then tap <strong>↻ Roll</strong> to throw the
+          remaining dice, or <strong>Bank</strong> to end your turn and keep the points. If a
+          roll has no scoring dice, tap <strong>Farkle</strong>: the turn ends and the whole
+          turn's points are lost.
         </p>
       </section>
 

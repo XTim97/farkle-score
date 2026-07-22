@@ -5,6 +5,8 @@ export type EngineErrorCode =
   | "NOTHING_TO_UNDO"
   | "NOTHING_TO_BANK"
   | "BELOW_ENTRY_THRESHOLD"
+  | "CANNOT_ROLL"
+  | "INVALID_FARKLE"
   | "INVALID_PLAYERS";
 
 export class EngineError extends Error {

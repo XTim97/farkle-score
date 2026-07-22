@@ -1,6 +1,7 @@
-import { comboByKey, currentPlayer, turnDerived, type GameState } from "@farkle/engine";
+import { currentPlayer, turnDerived, type GameState } from "@farkle/engine";
 import { useEffect, useRef, useState } from "react";
 import OddsPanel from "./OddsPanel.js";
+import RollChips from "./RollChips.js";
 
 interface Props {
   code: string;
@@ -127,15 +128,7 @@ export default function WatchScreen({ code, onExit }: Props) {
             Turn: <strong>{turnScore.toLocaleString()}</strong>
           </div>
           <OddsPanel game={game} />
-          {game.turnEvents.length > 0 && (
-            <div className="event-chips">
-              {game.turnEvents.map((e, i) => (
-                <span key={i} className="chip">
-                  {comboByKey.get(e.comboKey)?.label} +{e.points}
-                </span>
-              ))}
-            </div>
-          )}
+          <RollChips rolls={game.turnRolls} />
         </section>
       )}
 

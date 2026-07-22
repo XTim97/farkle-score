@@ -4,20 +4,25 @@ export {
   DICE_PER_TURN,
   bankTurn,
   canBank,
+  canFarkle,
+  canRollAgain,
   canScoreCombo,
   canUndo,
   createGame,
   currentPlayer,
   farkleTurn,
+  rollAgain,
   scoreCombo,
   turnDerived,
   undoLast,
+  type CompletedEvent,
   type CompletedTurn,
   type GamePhase,
   type GameState,
   type PlayerState,
   type TurnDerived,
-  type TurnEvent
+  type TurnEvent,
+  type TurnRoll
 } from "./game.js";
 export {
   availableCombos,

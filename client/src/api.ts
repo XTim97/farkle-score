@@ -47,6 +47,14 @@ export interface PlayerStats {
   bestGame: number;
   threeFarklePenalties: number;
   hotDiceTurns: number;
+  knownRolls: number;
+  expectedFarkles: number;
+  knownFarkles: number;
+  expectedPoints: number;
+  actualPoints: number;
+  avgFatalRollProb: number | null;
+  avgDiceLeftAtBank: number | null;
+  riskyRolls: number;
 }
 
 export interface GameSummary {

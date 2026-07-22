@@ -10,6 +10,12 @@ export interface TurnEvent {
   diceUsed: number;
 }
 
+/** One physical roll within a turn: how many dice hit the table, what was kept. */
+export interface TurnRoll {
+  diceCount: number;
+  events: TurnEvent[];
+}
+
 export interface PlayerState {
   id: string;
   name: string;
@@ -19,10 +25,16 @@ export interface PlayerState {
   consecutiveFarkles: number;
 }
 
+export interface CompletedEvent extends TurnEvent {
+  rollIndex: number;
+}
+
 export interface CompletedTurn {
   playerId: string;
   turnNumber: number;
-  events: TurnEvent[];
+  events: CompletedEvent[];
+  /** Dice count of each roll in order; a farkled turn ends with an eventless roll. */
+  rolls: number[];
   banked: number;
   farkled: boolean;
   /** Points deducted this turn by the three-farkle penalty (positive number). */
@@ -33,7 +45,7 @@ export interface GameState {
   ruleset: Ruleset;
   players: PlayerState[];
   currentPlayerIndex: number;
-  turnEvents: TurnEvent[];
+  turnRolls: TurnRoll[];
   history: CompletedTurn[];
   phase: GamePhase;
   finalRoundTriggeredBy: string | null;
@@ -43,12 +55,17 @@ export interface GameState {
 
 export interface TurnDerived {
   turnScore: number;
+  /** Unscored dice still on the table from the current roll. */
   diceRemaining: number;
-  /** Times all six dice scored this turn and rolled again. */
+  /** Dice a re-roll would throw: the unscored dice, or all 6 on hot dice, 0 if locked. */
+  nextRollDice: number;
+  /** Times all six dice scored this turn and the budget reset (hot dice). */
   hotDiceCount: number;
 }
 
 export const DICE_PER_TURN = 6;
+
+const freshTurn = (): TurnRoll[] => [{ diceCount: DICE_PER_TURN, events: [] }];
 
 export function createGame(
   players: Array<{ id: string; name: string }>,
@@ -75,7 +92,7 @@ export function createGame(
       consecutiveFarkles: 0
     })),
     currentPlayerIndex: firstPlayerIndex,
-    turnEvents: [],
+    turnRolls: freshTurn(),
     history: [],
     phase: "playing",
     finalRoundTriggeredBy: null,
@@ -90,24 +107,26 @@ export function currentPlayer(state: GameState): PlayerState {
   return player;
 }
 
-/**
- * Fold the current turn's events into score and dice remaining.
- * Dice budget starts at 6; each combo consumes its dice. Reaching exactly 0
- * with hot dice enabled resets the budget to 6 (same turn keeps building).
- */
+function currentRoll(state: GameState): TurnRoll {
+  const roll = state.turnRolls.at(-1);
+  if (!roll) throw new EngineError("INVALID_PLAYERS", "Turn has no rolls");
+  return roll;
+}
+
 export function turnDerived(state: GameState): TurnDerived {
-  let diceRemaining = DICE_PER_TURN;
   let turnScore = 0;
   let hotDiceCount = 0;
-  for (const event of state.turnEvents) {
-    diceRemaining -= event.diceUsed;
-    turnScore += event.points;
-    if (diceRemaining === 0 && state.ruleset.hotDice) {
-      diceRemaining = DICE_PER_TURN;
-      hotDiceCount += 1;
-    }
+  for (const [i, roll] of state.turnRolls.entries()) {
+    for (const event of roll.events) turnScore += event.points;
+    // A mid-turn roll of all six dice can only mean the previous roll went hot.
+    if (i > 0 && roll.diceCount === DICE_PER_TURN) hotDiceCount += 1;
   }
-  return { turnScore, diceRemaining, hotDiceCount };
+  const roll = currentRoll(state);
+  const used = roll.events.reduce((sum, e) => sum + e.diceUsed, 0);
+  const diceRemaining = roll.diceCount - used;
+  const nextRollDice =
+    diceRemaining > 0 ? diceRemaining : state.ruleset.hotDice ? DICE_PER_TURN : 0;
+  return { turnScore, diceRemaining, nextRollDice, hotDiceCount };
 }
 
 export function canScoreCombo(state: GameState, key: ComboKey): boolean {
@@ -131,38 +150,75 @@ export function scoreCombo(state: GameState, key: ComboKey): GameState {
   if (combo.diceUsed > diceRemaining) {
     throw new EngineError(
       "NOT_ENOUGH_DICE",
-      `${combo.label} needs ${combo.diceUsed} dice but only ${diceRemaining} remain`
+      `${combo.label} needs ${combo.diceUsed} dice but only ${diceRemaining} remain in this roll`
     );
   }
   const next = structuredClone(state);
-  next.turnEvents.push({ comboKey: key, points, diceUsed: combo.diceUsed });
+  currentRoll(next).events.push({ comboKey: key, points, diceUsed: combo.diceUsed });
+  return next;
+}
+
+export function canRollAgain(state: GameState): boolean {
+  if (state.phase === "finished") return false;
+  if (currentRoll(state).events.length === 0) return false;
+  return turnDerived(state).nextRollDice > 0;
+}
+
+/** The player picks up the unscored dice (all six on hot dice) and rolls. */
+export function rollAgain(state: GameState): GameState {
+  if (!canRollAgain(state)) {
+    throw new EngineError(
+      "CANNOT_ROLL",
+      "Keep at least one scoring combo from this roll before rolling again"
+    );
+  }
+  const { nextRollDice } = turnDerived(state);
+  const next = structuredClone(state);
+  next.turnRolls.push({ diceCount: nextRollDice, events: [] });
   return next;
 }
 
 export function canUndo(state: GameState): boolean {
-  return state.phase !== "finished" && state.turnEvents.length > 0;
+  if (state.phase === "finished") return false;
+  return currentRoll(state).events.length > 0 || state.turnRolls.length > 1;
 }
 
+/** Undo the last action this turn: the last kept combo, or an empty re-roll. */
 export function undoLast(state: GameState): GameState {
   if (!canUndo(state)) {
-    throw new EngineError("NOTHING_TO_UNDO", "No scoring selection to undo this turn");
+    throw new EngineError("NOTHING_TO_UNDO", "Nothing to undo this turn");
   }
   const next = structuredClone(state);
-  next.turnEvents.pop();
+  const roll = currentRoll(next);
+  if (roll.events.length > 0) roll.events.pop();
+  else next.turnRolls.pop();
   return next;
 }
 
 export function canBank(state: GameState): boolean {
   if (state.phase === "finished") return false;
+  if (currentRoll(state).events.length === 0) return false;
   const { turnScore } = turnDerived(state);
   if (turnScore <= 0) return false;
   const player = currentPlayer(state);
   return player.onBoard || turnScore >= state.ruleset.entryThreshold;
 }
 
+function flattenEvents(rolls: TurnRoll[]): CompletedEvent[] {
+  return rolls.flatMap((roll, rollIndex) =>
+    roll.events.map((event) => ({ ...event, rollIndex }))
+  );
+}
+
 export function bankTurn(state: GameState): GameState {
   if (state.phase === "finished") {
     throw new EngineError("GAME_FINISHED", "The game is over");
+  }
+  if (currentRoll(state).events.length === 0) {
+    throw new EngineError(
+      "NOTHING_TO_BANK",
+      "Keep a combo from this roll, or undo the roll, before banking"
+    );
   }
   const { turnScore } = turnDerived(state);
   if (turnScore <= 0) {
@@ -184,7 +240,8 @@ export function bankTurn(state: GameState): GameState {
   next.history.push({
     playerId: p.id,
     turnNumber: next.history.length + 1,
-    events: next.turnEvents,
+    events: flattenEvents(next.turnRolls),
+    rolls: next.turnRolls.map((r) => r.diceCount),
     banked: turnScore,
     farkled: false,
     penalty: 0
@@ -205,9 +262,21 @@ export function bankTurn(state: GameState): GameState {
   return advanceTurn(next);
 }
 
+export function canFarkle(state: GameState): boolean {
+  // A farkle is a roll with nothing scorable; once dice are kept from the
+  // current roll it is no longer a farkle (roll again first).
+  return state.phase !== "finished" && currentRoll(state).events.length === 0;
+}
+
 export function farkleTurn(state: GameState): GameState {
   if (state.phase === "finished") {
     throw new EngineError("GAME_FINISHED", "The game is over");
+  }
+  if (!canFarkle(state)) {
+    throw new EngineError(
+      "INVALID_FARKLE",
+      "Dice were kept from this roll; roll again before a farkle can happen"
+    );
   }
   const next = structuredClone(state);
   const p = currentPlayer(next);
@@ -222,7 +291,8 @@ export function farkleTurn(state: GameState): GameState {
   next.history.push({
     playerId: p.id,
     turnNumber: next.history.length + 1,
-    events: next.turnEvents,
+    events: flattenEvents(next.turnRolls),
+    rolls: next.turnRolls.map((r) => r.diceCount),
     banked: 0,
     farkled: true,
     penalty
@@ -237,14 +307,14 @@ export function farkleTurn(state: GameState): GameState {
 
 function advanceTurn(state: GameState): GameState {
   state.currentPlayerIndex = (state.currentPlayerIndex + 1) % state.players.length;
-  state.turnEvents = [];
+  state.turnRolls = freshTurn();
   return state;
 }
 
 /** Highest total wins; ties break toward the earlier seat. */
 function finishGame(state: GameState): GameState {
   state.phase = "finished";
-  state.turnEvents = [];
+  state.turnRolls = freshTurn();
   let winner = state.players[0];
   for (const player of state.players) {
     if (winner && player.score > winner.score) winner = player;
