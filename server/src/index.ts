@@ -2,6 +2,7 @@ import { serve } from "@hono/node-server";
 import { serveStatic } from "@hono/node-server/serve-static";
 import { DEFAULT_RULESET } from "@farkle/engine";
 import { Hono } from "hono";
+import { readFileSync } from "node:fs";
 import { db } from "./db.js";
 import { players } from "./schema.js";
 import { handleUpgrade } from "./live.js";
@@ -13,10 +14,14 @@ import { statsRoute } from "./routes/stats.js";
 
 const app = new Hono();
 
+const { version } = JSON.parse(
+  readFileSync(new URL("../package.json", import.meta.url), "utf8")
+) as { version: string };
+
 app.get("/api/health", (c) =>
   c.json({
     status: "ok",
-    version: process.env.npm_package_version ?? "dev",
+    version,
     ruleset: DEFAULT_RULESET.name,
     players: db.select().from(players).all().length
   })

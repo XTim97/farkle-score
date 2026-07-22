@@ -1,8 +1,8 @@
 # Farkle App: Comprehensive Build Plan
 
-Status: draft for review. This branch (`feature/big-updates`) diverges permanently from the
-upstream repo. All application code will be rewritten from scratch; the old app remains on
-`main` as a reference and as the currently-deployed container.
+Status: **shipped as v2.0.0** (2026-07-21). All six phases complete; deployed on the
+homelab at http://192.168.1.90:8793. This branch (`feature/big-updates`) diverged
+permanently from the upstream repo; the v1 app and container are retired.
 
 ## 1. Vision
 

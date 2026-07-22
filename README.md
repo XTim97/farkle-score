@@ -26,4 +26,6 @@ npm run typecheck
 docker compose -f deploy/docker-compose.yml up -d --build
 ```
 
-App data (SQLite) lives in the `farkle-data` volume, mounted at `/data`.
+Serves on **http://192.168.1.90:8793** (LAN / Tailscale). App data (SQLite) lives in
+`./data/` on the host, bind-mounted to `/data` in the container - back up that
+directory to protect game history.
