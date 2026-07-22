@@ -5,7 +5,7 @@ import { fetchRulesets, type ApiPlayer, type ApiRuleset } from "../api.js";
 interface Props {
   players: ApiPlayer[];
   onBack: () => void;
-  onStart: (ordered: ApiPlayer[], ruleset: Ruleset) => void;
+  onStart: (ordered: ApiPlayer[], ruleset: Ruleset, firstIndex?: number) => void;
 }
 
 const LAST_RULESET_KEY = "farkle-last-ruleset";
@@ -14,6 +14,8 @@ export default function ArrangeOrderScreen({ players, onBack, onStart }: Props) 
   const [order, setOrder] = useState(players);
   const [picked, setPicked] = useState<number | null>(null);
   const [rulesets, setRulesets] = useState<ApiRuleset[]>([]);
+  /** null = randomize; otherwise the player id who won the roll-off. */
+  const [firstId, setFirstId] = useState<number | null>(null);
   const [choice, setChoice] = useState<string>(
     localStorage.getItem(LAST_RULESET_KEY) ?? "default"
   );
@@ -47,7 +49,12 @@ export default function ArrangeOrderScreen({ players, onBack, onStart }: Props) 
   function start() {
     const custom = rulesets.find((r) => String(r.id) === choice);
     localStorage.setItem(LAST_RULESET_KEY, custom ? choice : "default");
-    onStart(order, custom ? custom.config : DEFAULT_RULESET);
+    const firstIndex = firstId == null ? undefined : order.findIndex((p) => p.id === firstId);
+    onStart(
+      order,
+      custom ? custom.config : DEFAULT_RULESET,
+      firstIndex === -1 ? undefined : firstIndex
+    );
   }
 
   return (
@@ -71,6 +78,29 @@ export default function ArrangeOrderScreen({ players, onBack, onStart }: Props) 
         ))}
       </ol>
 
+      <div className="field">
+        <span>First player (roll a die, or let the app pick)</span>
+        <div className="first-picker">
+          <button
+            type="button"
+            className={`pill ${firstId == null ? "selected" : ""}`}
+            onClick={() => setFirstId(null)}
+          >
+            🎲 Random
+          </button>
+          {order.map((p) => (
+            <button
+              key={p.id}
+              type="button"
+              className={`pill ${firstId === p.id ? "selected" : ""}`}
+              onClick={() => setFirstId(p.id)}
+            >
+              {p.name}
+            </button>
+          ))}
+        </div>
+      </div>
+
       <label className="field">
         <span>Rules</span>
         <select value={choice} onChange={(e) => setChoice(e.target.value)}>
@@ -85,7 +115,9 @@ export default function ArrangeOrderScreen({ players, onBack, onStart }: Props) 
 
       <div className="stack">
         <button type="button" className="primary big" onClick={start}>
-          🎲 Randomize First Player &amp; Start
+          {firstId == null
+            ? "🎲 Randomize First Player & Start"
+            : `🎲 Start (${order.find((p) => p.id === firstId)?.name} goes first)`}
         </button>
         <button type="button" className="secondary" onClick={onBack}>
           ← Back

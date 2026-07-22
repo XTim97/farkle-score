@@ -62,10 +62,10 @@ export default function App() {
   const startedAtRef = useRef("");
   const rulesetRef = useRef<Ruleset>(DEFAULT_RULESET);
 
-  const startGame = useCallback((ordered: ApiPlayer[], ruleset?: Ruleset) => {
+  const startGame = useCallback((ordered: ApiPlayer[], ruleset?: Ruleset, firstIndex?: number) => {
     const rules = ruleset ?? rulesetRef.current;
     rulesetRef.current = rules;
-    const first = Math.floor(Math.random() * ordered.length);
+    const first = firstIndex ?? Math.floor(Math.random() * ordered.length);
     setGame(
       createGame(
         ordered.map((p) => ({ id: String(p.id), name: p.name })),
@@ -199,7 +199,7 @@ export default function App() {
       <ArrangeOrderScreen
         players={roster}
         onBack={() => setScreen("players")}
-        onStart={(ordered, ruleset) => startGame(ordered, ruleset)}
+        onStart={(ordered, ruleset, firstIndex) => startGame(ordered, ruleset, firstIndex)}
       />
     );
   }

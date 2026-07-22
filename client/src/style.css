@@ -222,6 +222,26 @@ button.icon {
   font-weight: 600;
 }
 
+/* First-player picker */
+.first-picker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.pill {
+  border-radius: 999px;
+  padding: 0.35rem 0.85rem;
+  font-size: 0.9rem;
+}
+
+.pill.selected {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: var(--primary-text);
+  font-weight: 600;
+}
+
 /* Rulesets */
 .ruleset-list {
   list-style: none;
