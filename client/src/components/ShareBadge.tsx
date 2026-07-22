@@ -5,7 +5,7 @@ interface Props {
   liveCode: string | null;
 }
 
-/** "Watch along" badge on the game screen: tap for QR + join code. */
+/** "Watch along" badge on the game screen: tap for a QR + join code modal. */
 export default function ShareBadge({ liveCode }: Props) {
   const [open, setOpen] = useState(false);
   const [qr, setQr] = useState<string | null>(null);
@@ -20,6 +20,15 @@ export default function ShareBadge({ liveCode }: Props) {
     }
   }, [url, open]);
 
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setOpen(false);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [open]);
+
   if (!liveCode) return null;
 
   return (
@@ -33,13 +42,22 @@ export default function ShareBadge({ liveCode }: Props) {
         📺 Live · {liveCode}
       </button>
       {open && (
-        <div className="share-panel">
-          <p>Watch along on any phone on the network:</p>
-          {qr && <img src={qr} alt={`QR code to watch game ${liveCode}`} />}
-          <p className="share-url">{url}</p>
-          <p className="hint">
-            Or open the app, tap 📺 Watch a Game, and enter <strong>{liveCode}</strong>.
-          </p>
+        <div
+          className="modal-overlay"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Watch along"
+          onClick={() => setOpen(false)}
+        >
+          <div className="share-panel">
+            <p>Watch along on any phone:</p>
+            {qr && <img src={qr} alt={`QR code to watch game ${liveCode}`} />}
+            <p className="share-url">{url}</p>
+            <p className="hint">
+              Or open the app, tap 📺 Watch a Game, and enter <strong>{liveCode}</strong>.
+            </p>
+            <p className="hint">Tap anywhere to close.</p>
+          </div>
         </div>
       )}
     </>

@@ -94,15 +94,6 @@ export default function GameScreen({
         <button type="button" className="help-btn" aria-label="Help" onClick={onHelp}>
           ?
         </button>
-        <button
-          type="button"
-          className="icon"
-          aria-label="Undo"
-          disabled={!canUndo(game)}
-          onClick={onUndo}
-        >
-          ↩️ Undo
-        </button>
         <ShareBadge liveCode={liveCode} />
       </div>
       {game.phase === "finalRound" && (
@@ -190,14 +181,19 @@ export default function GameScreen({
         </div>
       </section>
 
-      <button
-        type="button"
-        className="danger"
-        disabled={!canFarkle(game)}
-        onClick={onFarkle}
-      >
-        💥 Farkle
-      </button>
+      <div className="bottom-actions">
+        <button type="button" disabled={!canUndo(game)} onClick={onUndo}>
+          ↩️ Undo
+        </button>
+        <button
+          type="button"
+          className="danger"
+          disabled={!canFarkle(game)}
+          onClick={onFarkle}
+        >
+          💥 Farkle
+        </button>
+      </div>
 
       {game.history.length > 0 && (
         <section className="history">
