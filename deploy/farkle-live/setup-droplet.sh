@@ -9,6 +9,15 @@ APP_DIR="/srv/farkle"
 
 : "${ACME_EMAIL:?set ACME_EMAIL to the email for Let's Encrypt registration}"
 
+# 2G swap: image builds (npm ci + vite) do not fit in 1GB RAM alone
+if ! swapon --show | grep -q /swapfile; then
+  fallocate -l 2G /swapfile
+  chmod 600 /swapfile
+  mkswap /swapfile
+  swapon /swapfile
+  echo '/swapfile none swap sw 0 0' >> /etc/fstab
+fi
+
 # Docker + compose plugin
 if ! command -v docker >/dev/null; then
   curl -fsSL https://get.docker.com | sh
