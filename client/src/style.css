@@ -269,6 +269,61 @@ button.icon {
   font-size: 1.1rem;
 }
 
+/* Odds */
+.odds-strip {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+  border-radius: 10px;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.9rem;
+  text-align: left;
+}
+
+.odds-strip.low { border-color: #2f9c54; }
+.odds-strip.mid { border-color: var(--accent); }
+.odds-strip.high { border-color: var(--danger); color: var(--danger); }
+.odds-strip.static { background: var(--bg); justify-content: center; font-weight: 600; }
+
+.odds-panel {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 0.6rem 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.odds-verdict {
+  margin: 0;
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.odds-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.15rem 1rem;
+}
+
+.odds-list li {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.85rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.odds-note {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.75rem;
+}
+
 .event-chips {
   display: flex;
   flex-wrap: wrap;

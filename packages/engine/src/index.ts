@@ -19,4 +19,11 @@ export {
   type TurnDerived,
   type TurnEvent
 } from "./game.js";
+export {
+  availableCombos,
+  bestScoreForCounts,
+  computeOdds,
+  rollVsBank,
+  type OddsResult
+} from "./odds.js";
 export { DEFAULT_RULESET, type Ruleset } from "./ruleset.js";
