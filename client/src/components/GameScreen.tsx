@@ -159,6 +159,8 @@ export default function GameScreen({
           )}
         </div>
 
+        <OddsPanel game={game} variant="scorer" />
+
         <RollChips rolls={game.turnRolls} />
 
         <div className="combo-grid">
@@ -177,8 +179,6 @@ export default function GameScreen({
             </button>
           ))}
         </div>
-
-        <OddsPanel game={game} variant="scorer" />
 
         <div className="turn-actions">
           <button type="button" disabled={!canRollAgain(game)} onClick={onRoll}>
