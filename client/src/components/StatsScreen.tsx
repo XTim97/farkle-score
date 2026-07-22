@@ -3,11 +3,12 @@ import { fetchStats, type PlayerStats } from "../api.js";
 
 interface Props {
   onBack: () => void;
+  onHelp: () => void;
 }
 
 const pct = (num: number, den: number) => (den > 0 ? `${((num / den) * 100).toFixed(0)}%` : "–");
 
-export default function StatsScreen({ onBack }: Props) {
+export default function StatsScreen({ onBack, onHelp }: Props) {
   const [stats, setStats] = useState<PlayerStats[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [expanded, setExpanded] = useState<Set<number>>(new Set());
@@ -31,6 +32,11 @@ export default function StatsScreen({ onBack }: Props) {
 
   return (
     <main className="screen">
+      <div className="screen-top">
+        <button type="button" className="help-btn" aria-label="Help" onClick={onHelp}>
+          ?
+        </button>
+      </div>
       <h1>📊 Player Stats</h1>
       {error && <p className="error">{error}</p>}
       {stats && played.length === 0 && (

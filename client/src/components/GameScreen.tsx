@@ -17,6 +17,7 @@ import ShareBadge from "./ShareBadge.js";
 interface Props {
   game: GameState;
   liveCode: string | null;
+  onHelp: () => void;
   onScore: (key: ComboKey) => void;
   onRoll: () => void;
   onUndo: () => void;
@@ -27,6 +28,7 @@ interface Props {
 export default function GameScreen({
   game,
   liveCode,
+  onHelp,
   onScore,
   onRoll,
   onUndo,
@@ -40,7 +42,12 @@ export default function GameScreen({
 
   return (
     <main className="screen game">
-      <ShareBadge liveCode={liveCode} />
+      <div className="screen-top">
+        <button type="button" className="help-btn" aria-label="Help" onClick={onHelp}>
+          ?
+        </button>
+        <ShareBadge liveCode={liveCode} />
+      </div>
       {game.phase === "finalRound" && (
         <div className="final-round" role="status">
           🏁 Final round! Everyone gets one last turn.
@@ -68,7 +75,7 @@ export default function GameScreen({
         <div className="turn-head">
           <h2>{active.name}</h2>
           <span className="dice-left" title="Dice remaining">
-            🎲 × {diceRemaining}
+            {diceRemaining === 0 && nextRollDice === 6 ? "🔥 Hot dice!" : `🎲 × ${diceRemaining}`}
             {hotDiceCount > 0 && <em className="hot"> 🔥{hotDiceCount}</em>}
           </span>
         </div>
@@ -103,7 +110,7 @@ export default function GameScreen({
         <div className="turn-actions">
           <button
             type="button"
-            className="secondary"
+            className={`secondary ${diceRemaining === 0 && nextRollDice === 6 ? "glow" : ""}`}
             disabled={!canRollAgain(game)}
             onClick={onRoll}
           >

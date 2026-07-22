@@ -908,17 +908,108 @@ button.icon {
   font-variant-numeric: tabular-nums;
 }
 
-/* Instructions */
-.instructions section {
+/* Screen chrome */
+.screen-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  min-height: 1.8rem;
+}
+
+.help-btn {
+  width: 1.8rem;
+  height: 1.8rem;
+  border-radius: 50%;
+  padding: 0;
+  font-weight: 700;
+  color: var(--muted);
+}
+
+button.glow {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent);
+  font-weight: 700;
+}
+
+/* Intro card */
+.intro-card {
+  background: var(--panel);
+  border: 1px solid var(--accent);
+  border-radius: 12px;
+  padding: 0.9rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.intro-card h2 {
+  font-size: 1.05rem;
+}
+
+.intro-card p {
+  margin: 0;
+  line-height: 1.45;
+}
+
+.intro-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.intro-actions .primary {
+  flex: 1;
+}
+
+/* Help & guide */
+.help-topic-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.help-topic {
   background: var(--panel);
   border: 1px solid var(--border);
   border-radius: 12px;
-  padding: 0.9rem;
+  overflow: hidden;
 }
 
-.instructions p {
-  margin: 0.4rem 0 0;
+.help-topic-button {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  border: none;
+  background: none;
+  padding: 0.7rem 0.9rem;
+  font-size: 1rem;
+}
+
+.help-topic-title {
+  flex: 1;
+  text-align: left;
+  font-weight: 600;
+}
+
+.help-topic-body {
+  padding: 0 0.9rem 0.9rem;
   line-height: 1.5;
+  font-size: 0.95rem;
+}
+
+.help-topic-body p,
+.help-topic-body ol,
+.help-topic-body ul {
+  margin: 0.4rem 0 0;
+}
+
+.help-topic-body ol,
+.help-topic-body ul {
+  padding-left: 1.2rem;
+}
+
+.help-topic-body li {
+  margin-top: 0.25rem;
 }
 
 .scoring-table {

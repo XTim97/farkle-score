@@ -4,10 +4,11 @@ import { deleteRuleset, fetchRulesets, type ApiRuleset } from "../api.js";
 
 interface Props {
   onBack: () => void;
+  onHelp: () => void;
   onEdit: (ruleset: ApiRuleset | null) => void;
 }
 
-export default function RulesetsScreen({ onBack, onEdit }: Props) {
+export default function RulesetsScreen({ onBack, onHelp, onEdit }: Props) {
   const [rulesets, setRulesets] = useState<ApiRuleset[]>([]);
   const [error, setError] = useState<string | null>(null);
 
@@ -28,6 +29,11 @@ export default function RulesetsScreen({ onBack, onEdit }: Props) {
 
   return (
     <main className="screen">
+      <div className="screen-top">
+        <button type="button" className="help-btn" aria-label="Help" onClick={onHelp}>
+          ?
+        </button>
+      </div>
       <h1>⚙️ House Rules</h1>
       <p className="hint">Rules are chosen per game when you start one.</p>
       {error && <p className="error">{error}</p>}

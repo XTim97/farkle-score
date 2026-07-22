@@ -5,12 +5,13 @@ import { fetchRulesets, type ApiPlayer, type ApiRuleset } from "../api.js";
 interface Props {
   players: ApiPlayer[];
   onBack: () => void;
+  onHelp: () => void;
   onStart: (ordered: ApiPlayer[], ruleset: Ruleset, firstIndex?: number) => void;
 }
 
 const LAST_RULESET_KEY = "farkle-last-ruleset";
 
-export default function ArrangeOrderScreen({ players, onBack, onStart }: Props) {
+export default function ArrangeOrderScreen({ players, onBack, onHelp, onStart }: Props) {
   const [order, setOrder] = useState(players);
   const [picked, setPicked] = useState<number | null>(null);
   const [rulesets, setRulesets] = useState<ApiRuleset[]>([]);
@@ -59,6 +60,11 @@ export default function ArrangeOrderScreen({ players, onBack, onStart }: Props) 
 
   return (
     <main className="screen">
+      <div className="screen-top">
+        <button type="button" className="help-btn" aria-label="Help" onClick={onHelp}>
+          ?
+        </button>
+      </div>
       <h1>Table Order</h1>
       <p className="hint">
         Match the seating around the table. Tap a player, then tap where they sit.

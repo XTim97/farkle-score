@@ -22,7 +22,7 @@ import {
 import ArrangeOrderScreen from "./components/ArrangeOrderScreen.js";
 import GameScreen from "./components/GameScreen.js";
 import HomeScreen from "./components/HomeScreen.js";
-import InstructionsScreen from "./components/InstructionsScreen.js";
+import InstructionsScreen, { type HelpTopicId } from "./components/InstructionsScreen.js";
 import PlayerSelectScreen from "./components/PlayerSelectScreen.js";
 import GameDetailScreen from "./components/GameDetailScreen.js";
 import HistoryScreen from "./components/HistoryScreen.js";
@@ -59,7 +59,23 @@ export default function App() {
   const [saveState, setSaveState] = useState<"idle" | "saved" | "failed">("idle");
   const [editingRuleset, setEditingRuleset] = useState<ApiRuleset | null>(null);
   const [openGameId, setOpenGameId] = useState<number | null>(null);
+  const [helpTopic, setHelpTopic] = useState<HelpTopicId | undefined>(undefined);
+  const [showIntro, setShowIntro] = useState(
+    () => !localStorage.getItem("farkle-intro-seen")
+  );
+  const helpReturnRef = useRef<Screen>("home");
   const startedAtRef = useRef("");
+
+  const openHelp = useCallback((topic: HelpTopicId | undefined, from: Screen) => {
+    setHelpTopic(topic);
+    helpReturnRef.current = from;
+    setScreen("instructions");
+  }, []);
+
+  const dismissIntro = useCallback(() => {
+    localStorage.setItem("farkle-intro-seen", "1");
+    setShowIntro(false);
+  }, []);
   const rulesetRef = useRef<Ruleset>(DEFAULT_RULESET);
 
   const startGame = useCallback((ordered: ApiPlayer[], ruleset?: Ruleset, firstIndex?: number) => {
@@ -117,21 +133,33 @@ export default function App() {
     return (
       <HomeScreen
         onNewGame={() => setScreen("players")}
-        onInstructions={() => setScreen("instructions")}
+        onInstructions={() => openHelp(undefined, "home")}
         onRulesets={() => setScreen("rulesets")}
         onStats={() => setScreen("stats")}
         onHistory={() => setScreen("history")}
         onWatch={() => setScreen("watch-join")}
+        showIntro={showIntro}
+        onDismissIntro={dismissIntro}
+        onGettingStarted={() => {
+          dismissIntro();
+          openHelp("getting-started", "home");
+        }}
       />
     );
   }
   if (screen === "instructions") {
-    return <InstructionsScreen onBack={() => setScreen("home")} />;
+    return (
+      <InstructionsScreen
+        initialTopic={helpTopic}
+        onBack={() => setScreen(helpReturnRef.current)}
+      />
+    );
   }
   if (screen === "rulesets") {
     return (
       <RulesetsScreen
         onBack={() => setScreen("home")}
+        onHelp={() => openHelp("house-rules", "rulesets")}
         onEdit={(ruleset) => {
           setEditingRuleset(ruleset);
           setScreen("ruleset-edit");
@@ -143,7 +171,12 @@ export default function App() {
     return <RulesetEditor editing={editingRuleset} onDone={() => setScreen("rulesets")} />;
   }
   if (screen === "stats") {
-    return <StatsScreen onBack={() => setScreen("home")} />;
+    return (
+      <StatsScreen
+        onBack={() => setScreen("home")}
+        onHelp={() => openHelp("stats", "stats")}
+      />
+    );
   }
   if (screen === "history") {
     return (
@@ -199,6 +232,7 @@ export default function App() {
       <ArrangeOrderScreen
         players={roster}
         onBack={() => setScreen("players")}
+        onHelp={() => openHelp("order-first", "order")}
         onStart={(ordered, ruleset, firstIndex) => startGame(ordered, ruleset, firstIndex)}
       />
     );
@@ -222,6 +256,7 @@ export default function App() {
       <GameScreen
         game={game}
         liveCode={liveCode}
+        onHelp={() => openHelp("turn-flow", "game")}
         onScore={(key: ComboKey) => apply((g) => scoreCombo(g, key))}
         onRoll={() => apply(rollAgain)}
         onUndo={() => apply(undoLast)}
