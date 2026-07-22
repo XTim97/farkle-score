@@ -4,3 +4,4 @@ dist/
 .env
 data/*.db
 data/*.db-*
+deploy/farkle-live/.env

@@ -14,6 +14,9 @@ services:
   caddy:
     image: caddy:2.10.2
     container_name: farkle-caddy
+    environment:
+      # From .env next to this file (written by setup-droplet.sh).
+      - ACME_EMAIL=${ACME_EMAIL}
     ports:
       - "80:80"
       - "443:443"
