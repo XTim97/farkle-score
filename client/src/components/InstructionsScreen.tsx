@@ -193,6 +193,11 @@ const TOPICS: HelpTopic[] = [
           </li>
         </ul>
         <p>
+          Inside the panel each player can pick what stays visible on their turn: nothing, the
+          farkle percentage, the top three most likely outcomes, or the coach's roll-or-bank
+          call.
+        </p>
+        <p>
           All of it is exact math for this game's rules, not simulation. Viewers watching
           live see the same strip.
         </p>

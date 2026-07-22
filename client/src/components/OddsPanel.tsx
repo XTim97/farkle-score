@@ -11,8 +11,29 @@ import { useMemo, useState } from "react";
 
 const ordinal = (n: number) => `${n}${["th", "st", "nd", "rd"][n % 10 <= 3 ? n % 10 : 0]}`;
 
+/** Compact combo names for the collapsed top-odds strip. */
+const SHORT_LABEL: Record<string, string> = {
+  single1: "1s",
+  single5: "5s",
+  triple1: "1×3",
+  triple2: "2×3",
+  triple3: "3×3",
+  triple4: "4×3",
+  triple5: "5×3",
+  triple6: "6×3",
+  fourOfAKind: "4oak",
+  fiveOfAKind: "5oak",
+  sixOfAKind: "6oak",
+  fullHouse: "FH",
+  threePairs: "3pr",
+  fourOfAKindPlusPair: "4+2",
+  twoTriplets: "2trip",
+  smallStraight: "str5",
+  largeStraight: "str6"
+};
+
 /** What the collapsed strip shows while it's this player's turn. */
-type OddsMode = "hidden" | "farkle";
+type OddsMode = "hidden" | "farkle" | "top" | "coach";
 
 const PREFS_KEY = "farkle-odds-prefs";
 
@@ -62,21 +83,55 @@ export default function OddsPanel({ game, variant = "viewer" }: Props) {
     .filter(([, p]) => p > 0)
     .sort(([, a], [, b]) => b - a);
 
-  const collapsedLabel =
-    mode === "farkle" ? (
+  const topOutcomes = [
+    { label: "💥", p: odds.pFarkle },
+    ...ranked.map(([key, p]) => ({ label: SHORT_LABEL[key] ?? key, p }))
+  ]
+    .sort((a, b) => b.p - a.p)
+    .slice(0, 3);
+
+  let collapsedLabel;
+  let stripTier = "";
+  if (mode === "farkle") {
+    collapsedLabel = (
       <span>
         Farkle risk <strong>{risk.toFixed(1)}%</strong>
         {variant === "viewer" && <> · roll EV ~{Math.round(odds.expectedRollScore)}</>}
       </span>
-    ) : (
-      <span>📊 Stats</span>
     );
+    stripTier = riskTier;
+  } else if (mode === "top") {
+    collapsedLabel = (
+      <span>
+        {topOutcomes.map((o, i) => (
+          <span key={o.label}>
+            {i > 0 && " · "}
+            {o.label} <strong>{(o.p * 100).toFixed(0)}%</strong>
+          </span>
+        ))}
+      </span>
+    );
+    stripTier = riskTier;
+  } else if (mode === "coach") {
+    collapsedLabel = (
+      <span>
+        {turnScore === 0
+          ? "🧭 Roll away"
+          : net >= 0
+            ? `🧭 Roll (+${Math.round(net)} avg)`
+            : `🧭 Bank (${Math.round(net)} avg)`}
+      </span>
+    );
+    stripTier = turnScore === 0 || net >= 0 ? "low" : "high";
+  } else {
+    collapsedLabel = <span>📊 Stats</span>;
+  }
 
   return (
     <>
       <button
         type="button"
-        className={`odds-strip ${mode === "farkle" ? riskTier : ""}`}
+        className={`odds-strip ${stripTier}`}
         onClick={() => setOpen((o) => !o)}
         aria-expanded={open}
       >
@@ -125,20 +180,23 @@ export default function OddsPanel({ game, variant = "viewer" }: Props) {
             <div className="odds-pref">
               <span className="odds-pref-label">Always show for {active.name}:</span>
               <div className="first-picker">
-                <button
-                  type="button"
-                  className={`pill ${mode === "hidden" ? "selected" : ""}`}
-                  onClick={() => setMode("hidden")}
-                >
-                  Nothing
-                </button>
-                <button
-                  type="button"
-                  className={`pill ${mode === "farkle" ? "selected" : ""}`}
-                  onClick={() => setMode("farkle")}
-                >
-                  Farkle %
-                </button>
+                {(
+                  [
+                    ["hidden", "Nothing"],
+                    ["farkle", "Farkle %"],
+                    ["top", "Top odds"],
+                    ["coach", "Coach"]
+                  ] as Array<[OddsMode, string]>
+                ).map(([value, label]) => (
+                  <button
+                    key={value}
+                    type="button"
+                    className={`pill ${mode === value ? "selected" : ""}`}
+                    onClick={() => setMode(value)}
+                  >
+                    {label}
+                  </button>
+                ))}
               </div>
             </div>
           )}
