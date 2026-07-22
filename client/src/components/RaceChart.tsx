@@ -68,6 +68,27 @@ export default function RaceChart({ detail }: { detail: RaceData }) {
   for (let v = 0; v <= yMax; v += yStep) yTicks.push(v);
   const direct = series.length <= 4;
 
+  // Direct labels collide when players finish tied or close; spread them
+  // to a minimum gap, then push back up if the stack ran past the bottom.
+  const LABEL_GAP = 11;
+  const labelYs = new Map<number, number>();
+  if (direct) {
+    const sorted = series
+      .map((s) => ({ id: s.playerId, y: y(s.points.at(-1) ?? 0) + 3 }))
+      .sort((a, b) => a.y - b.y);
+    for (let i = 1; i < sorted.length; i++) {
+      const prev = sorted[i - 1]!;
+      const cur = sorted[i]!;
+      if (cur.y - prev.y < LABEL_GAP) cur.y = prev.y + LABEL_GAP;
+    }
+    for (let i = sorted.length - 1; i >= 0; i--) {
+      const cap = i === sorted.length - 1 ? H - 4 : sorted[i + 1]!.y - LABEL_GAP;
+      const cur = sorted[i]!;
+      if (cur.y > cap) cur.y = cap;
+    }
+    for (const l of sorted) labelYs.set(l.id, l.y);
+  }
+
   return (
     <div className="race-chart">
       <div className="chart-legend">
@@ -148,7 +169,7 @@ export default function RaceChart({ detail }: { detail: RaceData }) {
                 <text
                   className="series-label"
                   x={x(lastIdx) + 6}
-                  y={y(s.points[lastIdx] ?? 0) + 3}
+                  y={labelYs.get(s.playerId) ?? y(s.points[lastIdx] ?? 0) + 3}
                 >
                   {s.name}
                 </text>

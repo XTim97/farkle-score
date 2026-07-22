@@ -276,3 +276,4 @@ h2.wb-label{font-size:.85rem;letter-spacing:.14em;text-transform:uppercase;color
 .celebration .standings{width:min(480px,100%);margin-top:10px}
 .celebration .standings .sb-score{font-size:1.2rem}
 .celebration-actions{display:flex;gap:12px;margin-top:8px;flex-wrap:wrap;justify-content:center}
+.wb-celebrate{position:relative;overflow:hidden}

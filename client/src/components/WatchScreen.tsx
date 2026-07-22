@@ -1,6 +1,7 @@
 import { currentPlayer, turnDerived, type GameState } from "@farkle/engine";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { commentary } from "../commentary.js";
+import ConfettiField from "./ConfettiField.js";
 import OddsPanel from "./OddsPanel.js";
 import RaceChart, { type RaceData } from "./RaceChart.js";
 import RollChips from "./RollChips.js";
@@ -13,6 +14,36 @@ interface Props {
 type Status = "connecting" | "live" | "waiting" | "lost";
 
 const MEDALS = ["🥇", "🥈", "🥉"];
+
+/**
+ * FLIP: when children of `ref` (matched by data-flip-id) change position,
+ * start them at their old offset and let them glide to the new spot.
+ */
+function useFlip(ref: React.RefObject<HTMLElement | null>, dep: unknown) {
+  const tops = useRef(new Map<string, number>());
+  useLayoutEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const next = new Map<string, number>();
+    for (const child of el.children) {
+      const node = child as HTMLElement;
+      const id = node.dataset.flipId;
+      if (!id) continue;
+      const top = node.getBoundingClientRect().top;
+      next.set(id, top);
+      const prev = tops.current.get(id);
+      if (prev != null && prev !== top) {
+        node.style.transition = "none";
+        node.style.transform = `translateY(${prev - top}px)`;
+        requestAnimationFrame(() => {
+          node.style.transition = "transform .4s cubic-bezier(.22,1,.36,1)";
+          node.style.transform = "";
+        });
+      }
+    }
+    tops.current = next;
+  }, [ref, dep]);
+}
 
 export default function WatchScreen({ code, onExit }: Props) {
   const [game, setGame] = useState<GameState | null>(null);
@@ -78,6 +109,9 @@ export default function WatchScreen({ code, onExit }: Props) {
 
   const call = useMemo(() => (game ? commentary(game) : null), [game]);
 
+  const boardRef = useRef<HTMLOListElement>(null);
+  useFlip(boardRef, game);
+
   if (!game) {
     return (
       <main className="screen">
@@ -101,6 +135,7 @@ export default function WatchScreen({ code, onExit }: Props) {
   const winner = game.players.find((p) => p.id === game.winnerId);
   const leaderScore = Math.max(...game.players.map((p) => p.score));
   const round = Math.floor(game.history.length / game.players.length) + 1;
+  const roundsPlayed = Math.max(1, Math.ceil(game.history.length / game.players.length));
   const seatOf = new Map(game.players.map((p, i) => [p.id, i]));
   const ranked = [...game.players].sort((a, b) => b.score - a.score);
   const hotDiceNow =
@@ -181,12 +216,13 @@ export default function WatchScreen({ code, onExit }: Props) {
       <div className="wb-grid">
         <section className="wb-col">
           <h2 className="wb-label">Leaderboard</h2>
-          <ol className="wb-board">
+          <ol className="wb-board" ref={boardRef}>
             {ranked.map((p, i) => {
               const rolling = active != null && p.id === active.id;
               return (
                 <li
                   key={p.id}
+                  data-flip-id={p.id}
                   className={`wb-row${rolling ? " rolling" : ""}${i >= 3 ? " trailing" : ""}`}
                 >
                   <span className={`wb-medal${i >= 3 ? " plain" : ""}`}>
@@ -220,7 +256,22 @@ export default function WatchScreen({ code, onExit }: Props) {
         </section>
 
         <section className="wb-col">
-          <h2 className="wb-label">Now rolling</h2>
+          <h2 className="wb-label">
+            {game.phase === "finished" ? "Winner" : "Now rolling"}
+          </h2>
+          {game.phase === "finished" && winner && (
+            <div className="turn-panel wb-spotlight wb-celebrate">
+              <ConfettiField />
+              <div className="trophy">🏆</div>
+              <div className="spotlight-name">{winner.name} wins!</div>
+              <div className="spotlight-score">{winner.score.toLocaleString()}</div>
+              <div className="spotlight-sub">
+                {roundsPlayed} {roundsPlayed === 1 ? "round" : "rounds"} · biggest turn{" "}
+                {biggest.banked.toLocaleString()}
+                {hotRuns > 0 && ` · 🔥 ${hotRuns} hot-dice ${hotRuns === 1 ? "run" : "runs"}`}
+              </div>
+            </div>
+          )}
           {active && (
             <div className={`turn-panel wb-spotlight${shake ? " farkle-hit" : ""}`}>
               <i className={`series-dot s${(seatOf.get(active.id) ?? 0) + 1}`} />
