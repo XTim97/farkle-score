@@ -1,8 +1,8 @@
 import type { CompletedTurn, Ruleset } from "@farkle/engine";
-import { desc } from "drizzle-orm";
+import { asc, desc, eq, inArray } from "drizzle-orm";
 import { Hono } from "hono";
 import { db, sqlite } from "../db.js";
-import { gamePlayers, games, scoringEvents, turns } from "../schema.js";
+import { gamePlayers, games, players, scoringEvents, turns } from "../schema.js";
 
 export interface FinishedGamePayload {
   startedAt: string;
@@ -16,7 +16,99 @@ export interface FinishedGamePayload {
 export const gamesRoute = new Hono();
 
 gamesRoute.get("/", (c) => {
-  return c.json(db.select().from(games).orderBy(desc(games.endedAt)).limit(50).all());
+  const gameRows = db.select().from(games).orderBy(desc(games.endedAt)).limit(50).all();
+  if (gameRows.length === 0) return c.json([]);
+
+  const participants = db
+    .select({
+      gameId: gamePlayers.gameId,
+      playerId: gamePlayers.playerId,
+      seatOrder: gamePlayers.seatOrder,
+      finalScore: gamePlayers.finalScore,
+      name: players.name
+    })
+    .from(gamePlayers)
+    .innerJoin(players, eq(players.id, gamePlayers.playerId))
+    .where(
+      inArray(
+        gamePlayers.gameId,
+        gameRows.map((g) => g.id)
+      )
+    )
+    .all();
+
+  return c.json(
+    gameRows.map((g) => ({
+      id: g.id,
+      startedAt: g.startedAt,
+      endedAt: g.endedAt,
+      winnerId: g.winnerId,
+      players: participants
+        .filter((p) => p.gameId === g.id)
+        .sort((a, b) => b.finalScore - a.finalScore)
+        .map(({ playerId, name, finalScore }) => ({ playerId, name, finalScore }))
+    }))
+  );
+});
+
+gamesRoute.get("/:id", (c) => {
+  const id = Number(c.req.param("id"));
+  if (!Number.isInteger(id)) return c.json({ error: "invalid id" }, 400);
+  const game = db.select().from(games).where(eq(games.id, id)).get();
+  if (!game) return c.json({ error: "not found" }, 404);
+
+  const participants = db
+    .select({
+      playerId: gamePlayers.playerId,
+      seatOrder: gamePlayers.seatOrder,
+      finalScore: gamePlayers.finalScore,
+      name: players.name
+    })
+    .from(gamePlayers)
+    .innerJoin(players, eq(players.id, gamePlayers.playerId))
+    .where(eq(gamePlayers.gameId, id))
+    .orderBy(asc(gamePlayers.seatOrder))
+    .all();
+
+  const turnRows = db
+    .select()
+    .from(turns)
+    .where(eq(turns.gameId, id))
+    .orderBy(asc(turns.turnNumber))
+    .all();
+
+  const eventRows = turnRows.length
+    ? db
+        .select()
+        .from(scoringEvents)
+        .where(
+          inArray(
+            scoringEvents.turnId,
+            turnRows.map((t) => t.id)
+          )
+        )
+        .orderBy(asc(scoringEvents.seq))
+        .all()
+    : [];
+
+  return c.json({
+    id: game.id,
+    startedAt: game.startedAt,
+    endedAt: game.endedAt,
+    winnerId: game.winnerId,
+    ruleset: JSON.parse(game.rulesetJson) as Ruleset,
+    players: participants,
+    turns: turnRows.map((t) => ({
+      turnNumber: t.turnNumber,
+      playerId: t.playerId,
+      banked: t.banked,
+      farkled: t.farkled,
+      penalty: t.penalty,
+      events: eventRows
+        .filter((e) => e.turnId === t.id)
+        .map(({ comboKey, points, diceUsed }) => ({ comboKey, points, diceUsed }))
+    }))
+  });
 });
 
 gamesRoute.post("/", async (c) => {

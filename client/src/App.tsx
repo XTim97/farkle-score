@@ -17,8 +17,11 @@ import GameScreen from "./components/GameScreen.js";
 import HomeScreen from "./components/HomeScreen.js";
 import InstructionsScreen from "./components/InstructionsScreen.js";
 import PlayerSelectScreen from "./components/PlayerSelectScreen.js";
+import GameDetailScreen from "./components/GameDetailScreen.js";
+import HistoryScreen from "./components/HistoryScreen.js";
 import RulesetEditor from "./components/RulesetEditor.js";
 import RulesetsScreen from "./components/RulesetsScreen.js";
+import StatsScreen from "./components/StatsScreen.js";
 import WinnerScreen from "./components/WinnerScreen.js";
 
 type Screen =
@@ -28,7 +31,10 @@ type Screen =
   | "game"
   | "instructions"
   | "rulesets"
-  | "ruleset-edit";
+  | "ruleset-edit"
+  | "stats"
+  | "history"
+  | "game-detail";
 
 export default function App() {
   const [screen, setScreen] = useState<Screen>("home");
@@ -36,6 +42,7 @@ export default function App() {
   const [game, setGame] = useState<GameState | null>(null);
   const [saveState, setSaveState] = useState<"idle" | "saved" | "failed">("idle");
   const [editingRuleset, setEditingRuleset] = useState<ApiRuleset | null>(null);
+  const [openGameId, setOpenGameId] = useState<number | null>(null);
   const startedAtRef = useRef("");
   const rulesetRef = useRef<Ruleset>(DEFAULT_RULESET);
 
@@ -81,6 +88,8 @@ export default function App() {
         onNewGame={() => setScreen("players")}
         onInstructions={() => setScreen("instructions")}
         onRulesets={() => setScreen("rulesets")}
+        onStats={() => setScreen("stats")}
+        onHistory={() => setScreen("history")}
       />
     );
   }
@@ -100,6 +109,23 @@ export default function App() {
   }
   if (screen === "ruleset-edit") {
     return <RulesetEditor editing={editingRuleset} onDone={() => setScreen("rulesets")} />;
+  }
+  if (screen === "stats") {
+    return <StatsScreen onBack={() => setScreen("home")} />;
+  }
+  if (screen === "history") {
+    return (
+      <HistoryScreen
+        onBack={() => setScreen("home")}
+        onOpen={(gameId) => {
+          setOpenGameId(gameId);
+          setScreen("game-detail");
+        }}
+      />
+    );
+  }
+  if (screen === "game-detail" && openGameId != null) {
+    return <GameDetailScreen gameId={openGameId} onBack={() => setScreen("history")} />;
   }
   if (screen === "players") {
     return (

@@ -2,9 +2,17 @@ interface Props {
   onNewGame: () => void;
   onInstructions: () => void;
   onRulesets: () => void;
+  onStats: () => void;
+  onHistory: () => void;
 }
 
-export default function HomeScreen({ onNewGame, onInstructions, onRulesets }: Props) {
+export default function HomeScreen({
+  onNewGame,
+  onInstructions,
+  onRulesets,
+  onStats,
+  onHistory
+}: Props) {
   return (
     <main className="screen home">
       <h1>🎲 Farkle Score</h1>
@@ -12,6 +20,12 @@ export default function HomeScreen({ onNewGame, onInstructions, onRulesets }: Pr
       <div className="stack">
         <button type="button" className="primary big" onClick={onNewGame}>
           New Game
+        </button>
+        <button type="button" className="secondary" onClick={onStats}>
+          📊 Stats
+        </button>
+        <button type="button" className="secondary" onClick={onHistory}>
+          🕘 Game History
         </button>
         <button type="button" className="secondary" onClick={onRulesets}>
           ⚙️ House Rules

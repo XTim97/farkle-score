@@ -35,6 +35,59 @@ export function deletePlayer(id: number): Promise<void> {
   return request(`/api/players/${id}`, { method: "DELETE" });
 }
 
+export interface PlayerStats {
+  playerId: number;
+  name: string;
+  gamesPlayed: number;
+  wins: number;
+  totalBanked: number;
+  turns: number;
+  farkles: number;
+  bestTurn: number;
+  bestGame: number;
+  threeFarklePenalties: number;
+  hotDiceTurns: number;
+}
+
+export interface GameSummary {
+  id: number;
+  startedAt: string;
+  endedAt: string;
+  winnerId: number | null;
+  players: Array<{ playerId: number; name: string; finalScore: number }>;
+}
+
+export interface GameDetailTurn {
+  turnNumber: number;
+  playerId: number;
+  banked: number;
+  farkled: boolean;
+  penalty: number;
+  events: Array<{ comboKey: string; points: number; diceUsed: number }>;
+}
+
+export interface GameDetail {
+  id: number;
+  startedAt: string;
+  endedAt: string;
+  winnerId: number | null;
+  ruleset: Ruleset;
+  players: Array<{ playerId: number; seatOrder: number; finalScore: number; name: string }>;
+  turns: GameDetailTurn[];
+}
+
+export function fetchStats(): Promise<PlayerStats[]> {
+  return request("/api/stats");
+}
+
+export function fetchGames(): Promise<GameSummary[]> {
+  return request("/api/games");
+}
+
+export function fetchGameDetail(id: number): Promise<GameDetail> {
+  return request(`/api/games/${id}`);
+}
+
 export function fetchRulesets(): Promise<ApiRuleset[]> {
   return request("/api/rulesets");
 }
