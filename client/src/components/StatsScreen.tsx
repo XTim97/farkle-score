@@ -10,6 +10,16 @@ const pct = (num: number, den: number) => (den > 0 ? `${((num / den) * 100).toFi
 export default function StatsScreen({ onBack }: Props) {
   const [stats, setStats] = useState<PlayerStats[] | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [expanded, setExpanded] = useState<Set<number>>(new Set());
+
+  function toggle(playerId: number) {
+    setExpanded((s) => {
+      const next = new Set(s);
+      if (next.has(playerId)) next.delete(playerId);
+      else next.add(playerId);
+      return next;
+    });
+  }
 
   useEffect(() => {
     fetchStats()
@@ -29,13 +39,22 @@ export default function StatsScreen({ onBack }: Props) {
 
       {played.map((s) => (
         <section key={s.playerId} className="stat-card">
-          <div className="stat-card-head">
+          <button
+            type="button"
+            className="stat-card-head"
+            onClick={() => toggle(s.playerId)}
+            aria-expanded={expanded.has(s.playerId)}
+          >
             <strong>{s.name}</strong>
             <span className="rs-summary">
               {s.wins} {s.wins === 1 ? "win" : "wins"} in {s.gamesPlayed}{" "}
               {s.gamesPlayed === 1 ? "game" : "games"}
+              {s.turns > 0 && ` · ${pct(s.farkles, s.turns)} farkle`}{" "}
+              <span aria-hidden="true">{expanded.has(s.playerId) ? "▾" : "▸"}</span>
             </span>
-          </div>
+          </button>
+          {expanded.has(s.playerId) && (
+            <>
           <div className="stat-grid">
             <div className="stat-tile">
               <span className="stat-value">{pct(s.wins, s.gamesPlayed)}</span>
@@ -107,6 +126,20 @@ export default function StatsScreen({ onBack }: Props) {
                     <span className="stat-label">risky rolls (≤2 dice)</span>
                   </div>
                 )}
+                {s.knownTurns > 0 && (
+                  <div className="stat-tile">
+                    <span className="stat-value">{(s.knownRolls / s.knownTurns).toFixed(1)}</span>
+                    <span className="stat-label">rolls per turn</span>
+                  </div>
+                )}
+                {s.knownRolls > 0 && (
+                  <div className="stat-tile">
+                    <span className="stat-value">
+                      {Math.round(s.actualPoints / s.knownRolls).toLocaleString()}
+                    </span>
+                    <span className="stat-label">points per roll</span>
+                  </div>
+                )}
               </div>
               {s.knownRolls > 0 && (
                 <p className="stat-footnote">
@@ -122,6 +155,8 @@ export default function StatsScreen({ onBack }: Props) {
               💥 Hit the three-farkle penalty {s.threeFarklePenalties}{" "}
               {s.threeFarklePenalties === 1 ? "time" : "times"}.
             </p>
+          )}
+            </>
           )}
         </section>
       ))}

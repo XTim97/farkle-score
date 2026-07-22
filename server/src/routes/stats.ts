@@ -16,6 +16,7 @@ export interface PlayerStats {
   hotDiceTurns: number;
   // Luck (roll-tracked turns only, except fatal-roll severity which covers all)
   knownRolls: number;
+  knownTurns: number;
   expectedFarkles: number;
   knownFarkles: number;
   expectedPoints: number;
@@ -85,6 +86,7 @@ const aggregateSql = `
 
 interface LuckAgg {
   knownRolls: number;
+  knownTurns: number;
   expectedFarkles: number;
   knownFarkles: number;
   expectedPoints: number;
@@ -98,6 +100,7 @@ interface LuckAgg {
 
 const emptyLuck = (): LuckAgg => ({
   knownRolls: 0,
+  knownTurns: 0,
   expectedFarkles: 0,
   knownFarkles: 0,
   expectedPoints: 0,
@@ -169,6 +172,7 @@ function computeLuck(): Map<number, LuckAgg> {
     if (turn.rollsJson) {
       const rolls = JSON.parse(turn.rollsJson) as number[];
       agg.knownRolls += rolls.length;
+      agg.knownTurns += 1;
       agg.knownFarkles += turn.farkled ? 1 : 0;
       for (const dice of rolls) {
         const odds = oddsFor(turn.gameId, dice);
@@ -226,6 +230,7 @@ statsRoute.get("/", (c) => {
     Omit<
       PlayerStats,
       | "knownRolls"
+      | "knownTurns"
       | "expectedFarkles"
       | "knownFarkles"
       | "expectedPoints"
@@ -242,6 +247,7 @@ statsRoute.get("/", (c) => {
       return {
         ...row,
         knownRolls: l.knownRolls,
+        knownTurns: l.knownTurns,
         expectedFarkles: l.expectedFarkles,
         knownFarkles: l.knownFarkles,
         expectedPoints: l.expectedPoints,

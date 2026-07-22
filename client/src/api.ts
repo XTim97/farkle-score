@@ -48,6 +48,7 @@ export interface PlayerStats {
   threeFarklePenalties: number;
   hotDiceTurns: number;
   knownRolls: number;
+  knownTurns: number;
   expectedFarkles: number;
   knownFarkles: number;
   expectedPoints: number;

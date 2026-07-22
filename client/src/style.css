@@ -699,6 +699,13 @@ button.icon {
   display: flex;
   justify-content: space-between;
   align-items: baseline;
+  gap: 0.5rem;
+  border: none;
+  background: none;
+  padding: 0;
+  font-size: 1rem;
+  text-align: left;
+  width: 100%;
 }
 
 .stat-grid {
