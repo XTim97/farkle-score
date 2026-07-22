@@ -122,15 +122,34 @@ describe("rolling again", () => {
     expect(turnDerived(g).diceRemaining).toBe(3);
   });
 
-  it("hot dice: scoring all six brings back a full six-dice roll", () => {
+  it("hot dice: scoring all six auto-opens a fresh six-dice roll", () => {
     let g = createGame(TWO, DEFAULT_RULESET);
     g = scoreCombo(g, "largeStraight");
-    expect(turnDerived(g).nextRollDice).toBe(6);
-    g = rollAgain(g);
+    // No Roll tap needed: the six-dice roll is already open.
+    expect(g.turnRolls).toHaveLength(2);
     expect(g.turnRolls[1]?.diceCount).toBe(6);
+    expect(turnDerived(g).diceRemaining).toBe(6);
     expect(turnDerived(g).hotDiceCount).toBe(1);
+    expect(canRollAgain(g)).toBe(false);
     g = scoreCombo(g, "sixOfAKind");
     expect(turnDerived(g).turnScore).toBe(1500 + 3000);
+    expect(turnDerived(g).hotDiceCount).toBe(2);
+  });
+
+  it("banking a hot turn discards the untouched auto-roll", () => {
+    let g = createGame(TWO, DEFAULT_RULESET);
+    g = scoreCombo(g, "largeStraight");
+    g = bankTurn(g);
+    expect(g.players[0]?.score).toBe(1500);
+    expect(g.history[0]?.rolls).toEqual([6]); // the phantom 6-dice roll is gone
+  });
+
+  it("farkling the hot roll records six fatal dice", () => {
+    let g = createGame(TWO, DEFAULT_RULESET);
+    g = scoreCombo(g, "largeStraight");
+    g = farkleTurn(g);
+    expect(g.history[0]?.rolls).toEqual([6, 6]);
+    expect(g.history[0]?.farkled).toBe(true);
   });
 
   it("hot dice off: zero unscored dice locks the turn", () => {
@@ -166,6 +185,16 @@ describe("undo", () => {
     expect(canUndo(g)).toBe(false);
     expect(() => undoLast(g)).toThrow(EngineError);
   });
+
+  it("one undo reverses a hot-dice combo together with its auto-roll", () => {
+    let g = createGame(TWO, DEFAULT_RULESET);
+    g = scoreCombo(g, "threePairs");
+    expect(g.turnRolls).toHaveLength(2);
+    g = undoLast(g);
+    expect(g.turnRolls).toHaveLength(1);
+    expect(turnDerived(g).turnScore).toBe(0);
+    expect(turnDerived(g).diceRemaining).toBe(6);
+  });
 });
 
 describe("banking", () => {
@@ -182,15 +211,15 @@ describe("banking", () => {
     expect(g.history[0]?.events.map((e) => e.rollIndex)).toEqual([0, 1]);
   });
 
-  it("refuses to bank nothing, or to bank a just-rolled untouched roll", () => {
+  it("refuses to bank nothing; banking after a stray roll tap discards it", () => {
     let g = createGame(TWO, DEFAULT_RULESET);
     expect(canBank(g)).toBe(false);
     expect(() => bankTurn(g)).toThrow(EngineError);
     g = scoreCombo(g, "triple5");
     g = rollAgain(g);
-    // Rolled three dice but kept nothing: undo the roll or resolve it first.
-    expect(canBank(g)).toBe(false);
-    expect(() => bankTurn(g)).toThrow(EngineError);
+    g = bankTurn(g);
+    expect(g.players[0]?.score).toBe(500);
+    expect(g.history[0]?.rolls).toEqual([6]); // stray empty roll not recorded
   });
 
   it("enforces the entry threshold until the player is on the board", () => {

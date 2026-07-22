@@ -75,7 +75,11 @@ export default function GameScreen({
         <div className="turn-head">
           <h2>{active.name}</h2>
           <span className="dice-left" title="Dice remaining">
-            {diceRemaining === 0 && nextRollDice === 6 ? "🔥 Hot dice!" : `🎲 × ${diceRemaining}`}
+            {game.turnRolls.length > 1 &&
+            game.turnRolls.at(-1)?.events.length === 0 &&
+            game.turnRolls.at(-1)?.diceCount === 6
+              ? "🔥 Hot dice! Roll all 6"
+              : `🎲 × ${diceRemaining}`}
             {hotDiceCount > 0 && <em className="hot"> 🔥{hotDiceCount}</em>}
           </span>
         </div>
@@ -110,7 +114,7 @@ export default function GameScreen({
         <div className="turn-actions">
           <button
             type="button"
-            className={`secondary ${diceRemaining === 0 && nextRollDice === 6 ? "glow" : ""}`}
+            className="secondary"
             disabled={!canRollAgain(game)}
             onClick={onRoll}
           >

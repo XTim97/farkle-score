@@ -154,7 +154,14 @@ export function scoreCombo(state: GameState, key: ComboKey): GameState {
     );
   }
   const next = structuredClone(state);
-  currentRoll(next).events.push({ comboKey: key, points, diceUsed: combo.diceUsed });
+  const roll = currentRoll(next);
+  roll.events.push({ comboKey: key, points, diceUsed: combo.diceUsed });
+  // Hot dice: all six scored, so the only possible re-roll is all six. Open it
+  // automatically; bankTurn discards it untouched if the player stops instead.
+  const used = roll.events.reduce((sum, e) => sum + e.diceUsed, 0);
+  if (roll.diceCount - used === 0 && next.ruleset.hotDice) {
+    next.turnRolls.push({ diceCount: DICE_PER_TURN, events: [] });
+  }
   return next;
 }
 
@@ -190,14 +197,21 @@ export function undoLast(state: GameState): GameState {
   }
   const next = structuredClone(state);
   const roll = currentRoll(next);
-  if (roll.events.length > 0) roll.events.pop();
-  else next.turnRolls.pop();
+  if (roll.events.length > 0) {
+    roll.events.pop();
+    return next;
+  }
+  next.turnRolls.pop();
+  // If the popped roll was the automatic hot-dice roll (previous roll fully
+  // consumed), the user meant to undo the combo that triggered it: one tap.
+  const prev = currentRoll(next);
+  const used = prev.events.reduce((sum, e) => sum + e.diceUsed, 0);
+  if (prev.diceCount - used === 0 && prev.events.length > 0) prev.events.pop();
   return next;
 }
 
 export function canBank(state: GameState): boolean {
   if (state.phase === "finished") return false;
-  if (currentRoll(state).events.length === 0) return false;
   const { turnScore } = turnDerived(state);
   if (turnScore <= 0) return false;
   const player = currentPlayer(state);
@@ -213,12 +227,6 @@ function flattenEvents(rolls: TurnRoll[]): CompletedEvent[] {
 export function bankTurn(state: GameState): GameState {
   if (state.phase === "finished") {
     throw new EngineError("GAME_FINISHED", "The game is over");
-  }
-  if (currentRoll(state).events.length === 0) {
-    throw new EngineError(
-      "NOTHING_TO_BANK",
-      "Keep a combo from this roll, or undo the roll, before banking"
-    );
   }
   const { turnScore } = turnDerived(state);
   if (turnScore <= 0) {
@@ -237,6 +245,11 @@ export function bankTurn(state: GameState): GameState {
   p.score += turnScore;
   p.onBoard = true;
   p.consecutiveFarkles = 0;
+  // A trailing eventless roll (the auto-opened hot-dice roll, or a stray
+  // manual roll tap) was never actually thrown: banking discards it.
+  if (next.turnRolls.length > 1 && currentRoll(next).events.length === 0) {
+    next.turnRolls.pop();
+  }
   next.history.push({
     playerId: p.id,
     turnNumber: next.history.length + 1,

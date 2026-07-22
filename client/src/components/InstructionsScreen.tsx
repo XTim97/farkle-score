@@ -161,9 +161,9 @@ const TOPICS: HelpTopic[] = [
     title: "Hot Dice",
     body: (
       <p>
-        Score all six dice and they come back: tap ↻ Roll and throw all six again, still
-        building the same turn. The 🔥 counter shows how many times the turn has gone hot.
-        Hot dice can be turned off per ruleset.
+        Score all six dice and they come back: the scoring buttons light up again on their
+        own, so just roll all six and keep tapping, or Bank to stop. The 🔥 counter shows how
+        many times the turn has gone hot. Hot dice can be turned off per ruleset.
       </p>
     )
   },
