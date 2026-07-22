@@ -1,5 +1,6 @@
 import { currentPlayer, turnDerived, turnLikelihood, type GameState } from "@farkle/engine";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { commentary } from "../commentary.js";
 import { fmtLikelihood } from "../format.js";
 import OddsPanel from "./OddsPanel.js";
 import RollChips from "./RollChips.js";
@@ -78,6 +79,7 @@ export default function WatchScreen({ code, onExit }: Props) {
   const { turnScore, diceRemaining, hotDiceCount } = turnDerived(game);
   const winner = game.players.find((p) => p.id === game.winnerId);
   const leaderScore = Math.max(...game.players.map((p) => p.score));
+  const call = useMemo(() => commentary(game), [game]);
 
   return (
     <main className="screen game">
@@ -98,6 +100,11 @@ export default function WatchScreen({ code, onExit }: Props) {
           🏆 {winner.name} wins with {winner.score.toLocaleString()}!
         </div>
       )}
+
+      <div className="commentary" role="status">
+        <p className="commentary-line">{call.line}</p>
+        {call.color && <p className="commentary-color">{call.color}</p>}
+      </div>
 
       <ul className="scoreboard">
         {game.players.map((p) => (

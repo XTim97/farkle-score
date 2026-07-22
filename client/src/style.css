@@ -501,6 +501,32 @@ button.icon {
   color: var(--primary);
 }
 
+/* Jumbotron commentary */
+.commentary {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--accent);
+  border-radius: 10px;
+  padding: 0.6rem 0.85rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.commentary-line {
+  margin: 0;
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+.commentary-color {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.88rem;
+  font-style: italic;
+  line-height: 1.35;
+}
+
 .watch-status.lost {
   color: var(--danger);
 }
