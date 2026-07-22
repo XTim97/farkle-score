@@ -6,6 +6,18 @@ interface Props {
   onContinue: (selected: ApiPlayer[]) => void;
 }
 
+/** Last confirmed lineup, per browser. Missing or invalid just means empty. */
+const LAST_PLAYERS_KEY = "farkle-last-players";
+
+function loadLastPlayers(): number[] {
+  try {
+    const raw = JSON.parse(localStorage.getItem(LAST_PLAYERS_KEY) ?? "[]") as unknown;
+    return Array.isArray(raw) ? raw.filter((v): v is number => typeof v === "number") : [];
+  } catch {
+    return [];
+  }
+}
+
 export default function PlayerSelectScreen({ onBack, onContinue }: Props) {
   const [players, setPlayers] = useState<ApiPlayer[]>([]);
   const [selected, setSelected] = useState<Set<number>>(new Set());
@@ -16,8 +28,13 @@ export default function PlayerSelectScreen({ onBack, onContinue }: Props) {
     fetchPlayers()
       .then((list) => {
         setPlayers(list);
-        // Exactly two saved players: both are obviously playing.
-        if (list.length === 2) setSelected(new Set(list.map((p) => p.id)));
+        const last = loadLastPlayers().filter((id) => list.some((p) => p.id === id));
+        if (last.length > 0) {
+          setSelected(new Set(last));
+        } else if (list.length === 2) {
+          // Exactly two saved players: both are obviously playing.
+          setSelected(new Set(list.map((p) => p.id)));
+        }
       })
       .catch(() => setError("Could not load saved players"));
   }, []);
@@ -112,7 +129,10 @@ export default function PlayerSelectScreen({ onBack, onContinue }: Props) {
           type="button"
           className="primary big"
           disabled={chosen.length < 2}
-          onClick={() => onContinue(chosen)}
+          onClick={() => {
+            localStorage.setItem(LAST_PLAYERS_KEY, JSON.stringify(chosen.map((p) => p.id)));
+            onContinue(chosen);
+          }}
         >
           {chosen.length < 2 ? "Select at least 2 players" : `Continue with ${chosen.length}`}
         </button>
