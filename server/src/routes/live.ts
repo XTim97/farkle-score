@@ -4,7 +4,9 @@ import { createSession, getSession, publishState } from "../live.js";
 export const liveRoute = new Hono();
 
 liveRoute.post("/", (c) => {
-  return c.json({ code: createSession() }, 201);
+  const code = createSession();
+  if (!code) return c.json({ error: "too many live sessions" }, 503);
+  return c.json({ code }, 201);
 });
 
 liveRoute.get("/:code", (c) => {

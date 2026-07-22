@@ -1,6 +1,7 @@
 import { computeOdds, DICE_PER_TURN, type OddsResult, type Ruleset } from "@farkle/engine";
 import { Hono } from "hono";
 import { sqlite } from "../db.js";
+import { clubOf } from "../guard.js";
 
 export interface PlayerStats {
   playerId: number;
@@ -81,6 +82,7 @@ const aggregateSql = `
            FROM scoring_events e WHERE e.turn_id = t.id) > 6
     GROUP BY t.player_id
   ) h ON h.player_id = p.id
+  WHERE p.club = ?
   ORDER BY wins DESC, gamesPlayed DESC, p.name
 `;
 
@@ -118,10 +120,10 @@ const emptyLuck = (): LuckAgg => ({
  * turns (unknown roll boundaries) still yield fatal-roll severity and
  * banking caution via the flat dice fold.
  */
-function computeLuck(): Map<number, LuckAgg> {
+function computeLuck(club: string): Map<number, LuckAgg> {
   const rulesets = new Map<number, Ruleset>(
     (
-      sqlite.prepare("SELECT id, ruleset_json AS rulesetJson FROM games").all() as Array<{
+      sqlite.prepare("SELECT id, ruleset_json AS rulesetJson FROM games WHERE club = ?").all(club) as Array<{
         id: number;
         rulesetJson: string;
       }>
@@ -129,9 +131,9 @@ function computeLuck(): Map<number, LuckAgg> {
   );
   const turnRows = sqlite
     .prepare(
-      "SELECT id, game_id AS gameId, player_id AS playerId, banked, farkled, rolls_json AS rollsJson FROM turns"
+      "SELECT id, game_id AS gameId, player_id AS playerId, banked, farkled, rolls_json AS rollsJson FROM turns WHERE game_id IN (SELECT id FROM games WHERE club = ?)"
     )
-    .all() as TurnRow[];
+    .all(club) as TurnRow[];
   const eventRows = sqlite
     .prepare(
       "SELECT turn_id AS turnId, points, dice_used AS diceUsed, roll_index AS rollIndex FROM scoring_events ORDER BY turn_id, seq"
@@ -226,7 +228,9 @@ function computeLuck(): Map<number, LuckAgg> {
 export const statsRoute = new Hono();
 
 statsRoute.get("/", (c) => {
-  const rows = sqlite.prepare(aggregateSql).all() as Array<
+  const club = clubOf(c);
+  if (!club) return c.json([]);
+  const rows = sqlite.prepare(aggregateSql).all(club) as Array<
     Omit<
       PlayerStats,
       | "knownRolls"
@@ -240,7 +244,7 @@ statsRoute.get("/", (c) => {
       | "riskyRolls"
     >
   >;
-  const luck = computeLuck();
+  const luck = computeLuck(club);
   return c.json(
     rows.map((row): PlayerStats => {
       const l = luck.get(row.playerId) ?? emptyLuck();

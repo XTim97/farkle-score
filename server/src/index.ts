@@ -4,6 +4,7 @@ import { DEFAULT_RULESET } from "@farkle/engine";
 import { Hono } from "hono";
 import { readFileSync } from "node:fs";
 import { db } from "./db.js";
+import { apiBodyLimit, apiGuard } from "./guard.js";
 import { players } from "./schema.js";
 import { handleUpgrade } from "./live.js";
 import { gamesRoute } from "./routes/games.js";
@@ -13,6 +14,9 @@ import { rulesetsRoute } from "./routes/rulesets.js";
 import { statsRoute } from "./routes/stats.js";
 
 const app = new Hono();
+
+app.use("/api/*", apiGuard);
+app.use("/api/*", apiBodyLimit);
 
 const { version } = JSON.parse(
   readFileSync(new URL("../package.json", import.meta.url), "utf8")

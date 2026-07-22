@@ -20,7 +20,12 @@ const sessions = new Map<string, LiveSession>();
 // No lookalike characters (0/O, 1/I/L): codes get read aloud across a table.
 const ALPHABET = "ABCDEFGHJKMNPQRSTVWXYZ23456789";
 
-export function createSession(): string {
+/** Hard ceiling on concurrent sessions; a family never gets near it. */
+const MAX_SESSIONS = 300;
+const MAX_VIEWERS_PER_SESSION = 50;
+
+export function createSession(): string | null {
+  if (sessions.size >= MAX_SESSIONS) return null;
   let code: string;
   do {
     code = Array.from(randomBytes(6), (b) => ALPHABET[b % ALPHABET.length]).join("");
@@ -65,6 +70,11 @@ export function handleUpgrade(req: IncomingMessage, socket: Duplex, head: Buffer
   const session = match?.[1] ? getSession(match[1]) : undefined;
   if (!session) {
     socket.write("HTTP/1.1 404 Not Found\r\n\r\n");
+    socket.destroy();
+    return;
+  }
+  if (session.sockets.size >= MAX_VIEWERS_PER_SESSION) {
+    socket.write("HTTP/1.1 503 Service Unavailable\r\n\r\n");
     socket.destroy();
     return;
   }

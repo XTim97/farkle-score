@@ -1,7 +1,8 @@
 import type { CompletedTurn, Ruleset } from "@farkle/engine";
-import { asc, desc, eq, inArray } from "drizzle-orm";
+import { and, asc, desc, eq, inArray } from "drizzle-orm";
 import { Hono } from "hono";
 import { db, sqlite } from "../db.js";
+import { clubOf } from "../guard.js";
 import { gamePlayers, games, players, scoringEvents, turns } from "../schema.js";
 
 export interface FinishedGamePayload {
@@ -16,7 +17,15 @@ export interface FinishedGamePayload {
 export const gamesRoute = new Hono();
 
 gamesRoute.get("/", (c) => {
-  const gameRows = db.select().from(games).orderBy(desc(games.endedAt)).limit(50).all();
+  const club = clubOf(c);
+  if (!club) return c.json([]);
+  const gameRows = db
+    .select()
+    .from(games)
+    .where(eq(games.club, club))
+    .orderBy(desc(games.endedAt))
+    .limit(50)
+    .all();
   if (gameRows.length === 0) return c.json([]);
 
   const participants = db
@@ -52,9 +61,12 @@ gamesRoute.get("/", (c) => {
 });
 
 gamesRoute.get("/:id", (c) => {
+  const club = clubOf(c);
   const id = Number(c.req.param("id"));
   if (!Number.isInteger(id)) return c.json({ error: "invalid id" }, 400);
-  const game = db.select().from(games).where(eq(games.id, id)).get();
+  const game = club
+    ? db.select().from(games).where(and(eq(games.id, id), eq(games.club, club))).get()
+    : undefined;
   if (!game) return c.json({ error: "not found" }, 404);
 
   const participants = db
@@ -118,9 +130,23 @@ gamesRoute.get("/:id", (c) => {
 });
 
 gamesRoute.post("/", async (c) => {
+  const club = clubOf(c);
+  if (!club) return c.json({ error: "missing club id" }, 400);
   const body = await c.req.json<FinishedGamePayload>();
   if (!body.players?.length || !body.turns?.length || !body.ruleset) {
     return c.json({ error: "players, turns and ruleset are required" }, 400);
+  }
+
+  // Every referenced player must belong to this club; otherwise a crafted
+  // payload could pull another household's names into this club's history.
+  const ids = [...new Set(body.players.map((p) => p.playerId))];
+  const owned = db
+    .select({ id: players.id })
+    .from(players)
+    .where(and(inArray(players.id, ids), eq(players.club, club)))
+    .all();
+  if (owned.length !== ids.length) {
+    return c.json({ error: "unknown player in payload" }, 400);
   }
 
   const save = sqlite.transaction(() => {
@@ -130,6 +156,7 @@ gamesRoute.post("/", async (c) => {
         startedAt: body.startedAt,
         endedAt: body.endedAt,
         winnerId: body.winnerId,
+        club,
         rulesetJson: JSON.stringify(body.ruleset)
       })
       .returning()

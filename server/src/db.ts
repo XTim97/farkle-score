@@ -16,16 +16,18 @@ sqlite.pragma("foreign_keys = ON");
 sqlite.exec(`
   CREATE TABLE IF NOT EXISTS players (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT NOT NULL UNIQUE,
+    name TEXT NOT NULL,
     color TEXT,
-    created_at TEXT NOT NULL DEFAULT (datetime('now'))
+    created_at TEXT NOT NULL DEFAULT (datetime('now')),
+    club TEXT NOT NULL DEFAULT ''
   );
 
   CREATE TABLE IF NOT EXISTS rulesets (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT NOT NULL UNIQUE,
+    name TEXT NOT NULL,
     config_json TEXT NOT NULL,
-    created_at TEXT NOT NULL DEFAULT (datetime('now'))
+    created_at TEXT NOT NULL DEFAULT (datetime('now')),
+    club TEXT NOT NULL DEFAULT ''
   );
 
   CREATE TABLE IF NOT EXISTS games (
@@ -33,7 +35,8 @@ sqlite.exec(`
     started_at TEXT NOT NULL,
     ended_at TEXT NOT NULL,
     winner_id INTEGER REFERENCES players(id),
-    ruleset_json TEXT NOT NULL
+    ruleset_json TEXT NOT NULL,
+    club TEXT NOT NULL DEFAULT ''
   );
 
   CREATE TABLE IF NOT EXISTS game_players (
@@ -79,5 +82,48 @@ function ensureColumn(table: string, column: string, ddl: string) {
 }
 ensureColumn("turns", "rolls_json", "rolls_json TEXT");
 ensureColumn("scoring_events", "roll_index", "roll_index INTEGER");
+
+// Club scoping (anonymous per-browser households). Legacy players/rulesets
+// tables carry a global UNIQUE(name) that must become per-club, which SQLite
+// can only do via table rebuild. Legacy rows keep club='' and are visible to
+// no one, matching "when in doubt, blank".
+function rebuildForClubs(table: "players" | "rulesets", newDdl: string, copyCols: string) {
+  const cols = sqlite.prepare(`PRAGMA table_info(${table})`).all() as Array<{ name: string }>;
+  if (cols.some((c) => c.name === "club")) return;
+  sqlite.pragma("foreign_keys = OFF");
+  sqlite.exec(`
+    BEGIN;
+    CREATE TABLE ${table}_new (${newDdl});
+    INSERT INTO ${table}_new (${copyCols}) SELECT ${copyCols} FROM ${table};
+    DROP TABLE ${table};
+    ALTER TABLE ${table}_new RENAME TO ${table};
+    COMMIT;
+  `);
+  sqlite.pragma("foreign_keys = ON");
+}
+rebuildForClubs(
+  "players",
+  `id INTEGER PRIMARY KEY AUTOINCREMENT,
+   name TEXT NOT NULL,
+   color TEXT,
+   created_at TEXT NOT NULL DEFAULT (datetime('now')),
+   club TEXT NOT NULL DEFAULT ''`,
+  "id, name, color, created_at"
+);
+rebuildForClubs(
+  "rulesets",
+  `id INTEGER PRIMARY KEY AUTOINCREMENT,
+   name TEXT NOT NULL,
+   config_json TEXT NOT NULL,
+   created_at TEXT NOT NULL DEFAULT (datetime('now')),
+   club TEXT NOT NULL DEFAULT ''`,
+  "id, name, config_json, created_at"
+);
+ensureColumn("games", "club", "club TEXT NOT NULL DEFAULT ''");
+sqlite.exec(`
+  CREATE UNIQUE INDEX IF NOT EXISTS idx_players_club_name ON players(club, name);
+  CREATE UNIQUE INDEX IF NOT EXISTS idx_rulesets_club_name ON rulesets(club, name);
+  CREATE INDEX IF NOT EXISTS idx_games_club ON games(club);
+`);
 
 export const db = drizzle(sqlite, { schema });

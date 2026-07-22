@@ -14,9 +14,24 @@ export interface ApiRuleset {
   config: Ruleset;
 }
 
+/**
+ * Anonymous per-browser household id: everything this browser saves (players,
+ * games, stats, rulesets) is scoped to it server-side. Random UUID, minted
+ * once; clearing site data starts a fresh blank household.
+ */
+const CLUB_KEY = "farkle-club";
+function clubId(): string {
+  let id = localStorage.getItem(CLUB_KEY);
+  if (!id) {
+    id = crypto.randomUUID();
+    localStorage.setItem(CLUB_KEY, id);
+  }
+  return id;
+}
+
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const res = await fetch(path, {
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json", "X-Farkle-Club": clubId() },
     ...init
   });
   if (!res.ok) throw new Error(`${init?.method ?? "GET"} ${path} failed: ${res.status}`);

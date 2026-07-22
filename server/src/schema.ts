@@ -2,16 +2,20 @@ import { integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
 
 export const players = sqliteTable("players", {
   id: integer("id").primaryKey({ autoIncrement: true }),
-  name: text("name").notNull().unique(),
+  /** Unique per club (see idx_players_club_name), not globally. */
+  name: text("name").notNull(),
   color: text("color"),
-  createdAt: text("created_at").notNull()
+  createdAt: text("created_at").notNull(),
+  /** Anonymous per-browser household id; '' on legacy rows, hidden from everyone. */
+  club: text("club").notNull().default("")
 });
 
 export const rulesets = sqliteTable("rulesets", {
   id: integer("id").primaryKey({ autoIncrement: true }),
-  name: text("name").notNull().unique(),
+  name: text("name").notNull(),
   configJson: text("config_json").notNull(),
-  createdAt: text("created_at").notNull()
+  createdAt: text("created_at").notNull(),
+  club: text("club").notNull().default("")
 });
 
 export const games = sqliteTable("games", {
@@ -20,7 +24,8 @@ export const games = sqliteTable("games", {
   endedAt: text("ended_at").notNull(),
   winnerId: integer("winner_id").references(() => players.id),
   /** Frozen ruleset snapshot so stats stay accurate if rules change later. */
-  rulesetJson: text("ruleset_json").notNull()
+  rulesetJson: text("ruleset_json").notNull(),
+  club: text("club").notNull().default("")
 });
 
 export const gamePlayers = sqliteTable("game_players", {
