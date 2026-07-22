@@ -72,7 +72,8 @@ export interface GameDetailTurn {
   banked: number;
   farkled: boolean;
   penalty: number;
-  events: Array<{ comboKey: string; points: number; diceUsed: number }>;
+  rolls: number[] | null;
+  events: Array<{ comboKey: string; points: number; diceUsed: number; rollIndex: number | null }>;
 }
 
 export interface GameDetail {

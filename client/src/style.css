@@ -649,6 +649,12 @@ button.icon {
   color: var(--danger);
 }
 
+.turn-odds {
+  color: var(--muted);
+  font-size: 0.8rem;
+  font-variant-numeric: tabular-nums;
+}
+
 /* Winner */
 .winner h1 {
   font-size: 1.8rem;

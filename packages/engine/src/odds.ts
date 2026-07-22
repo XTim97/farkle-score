@@ -63,89 +63,126 @@ export function availableCombos(counts: Counts, ruleset: Ruleset): ComboKey[] {
   return found;
 }
 
+const usageOf = (pairs: Array<[face: number, n: number]>): Counts => {
+  const u = [0, 0, 0, 0, 0, 0];
+  for (const [face, n] of pairs) u[face - 1] = n;
+  return u;
+};
+
+/** Every way one specific combo can consume faces from a roll with these counts. */
+export function usagesForCombo(key: ComboKey, counts: Counts): Counts[] {
+  const get = (face: number) => counts[face - 1] ?? 0;
+  const out: Counts[] = [];
+  switch (key) {
+    case "single1":
+      if (get(1) >= 1) out.push(usageOf([[1, 1]]));
+      break;
+    case "single5":
+      if (get(5) >= 1) out.push(usageOf([[5, 1]]));
+      break;
+    case "fourOfAKind":
+      for (let f = 1; f <= 6; f += 1) if (get(f) >= 4) out.push(usageOf([[f, 4]]));
+      break;
+    case "fiveOfAKind":
+      for (let f = 1; f <= 6; f += 1) if (get(f) >= 5) out.push(usageOf([[f, 5]]));
+      break;
+    case "sixOfAKind":
+      for (let f = 1; f <= 6; f += 1) if (get(f) >= 6) out.push(usageOf([[f, 6]]));
+      break;
+    case "fullHouse":
+      for (let f = 1; f <= 6; f += 1) {
+        for (let g = 1; g <= 6; g += 1) {
+          if (g !== f && get(f) >= 3 && get(g) >= 2) {
+            out.push(
+              usageOf([
+                [f, 3],
+                [g, 2]
+              ])
+            );
+          }
+        }
+      }
+      break;
+    case "fourOfAKindPlusPair":
+      for (let f = 1; f <= 6; f += 1) {
+        for (let g = 1; g <= 6; g += 1) {
+          if (g !== f && get(f) >= 4 && get(g) >= 2) {
+            out.push(
+              usageOf([
+                [f, 4],
+                [g, 2]
+              ])
+            );
+          }
+        }
+      }
+      break;
+    case "twoTriplets":
+      for (let f = 1; f <= 6; f += 1) {
+        for (let g = f + 1; g <= 6; g += 1) {
+          if (get(f) >= 3 && get(g) >= 3) {
+            out.push(
+              usageOf([
+                [f, 3],
+                [g, 3]
+              ])
+            );
+          }
+        }
+      }
+      break;
+    case "threePairs": {
+      const pairFaces = [1, 2, 3, 4, 5, 6].filter((f) => get(f) >= 2);
+      for (let i = 0; i < pairFaces.length; i += 1) {
+        for (let j = i + 1; j < pairFaces.length; j += 1) {
+          for (let k = j + 1; k < pairFaces.length; k += 1) {
+            out.push(
+              usageOf([
+                [pairFaces[i]!, 2],
+                [pairFaces[j]!, 2],
+                [pairFaces[k]!, 2]
+              ])
+            );
+          }
+        }
+      }
+      break;
+    }
+    case "smallStraight":
+      for (const run of [
+        [1, 2, 3, 4, 5],
+        [2, 3, 4, 5, 6]
+      ]) {
+        if (run.every((f) => get(f) >= 1)) {
+          out.push(usageOf(run.map((f) => [f, 1])));
+        }
+      }
+      break;
+    case "largeStraight":
+      if (counts.every((c) => c >= 1)) {
+        out.push(usageOf([1, 2, 3, 4, 5, 6].map((f) => [f, 1])));
+      }
+      break;
+    default: {
+      // tripleN
+      const face = Number(key.slice(6));
+      if (face >= 1 && face <= 6 && get(face) >= 3) out.push(usageOf([[face, 3]]));
+    }
+  }
+  return out;
+}
+
 /** Every way an enabled combo can consume faces from this roll. */
 function comboApplications(
   counts: Counts,
   ruleset: Ruleset
 ): Array<{ key: ComboKey; usage: Counts }> {
   const apps: Array<{ key: ComboKey; usage: Counts }> = [];
-  const use = (key: ComboKey, usage: Counts) => {
-    if (enabled(ruleset, key)) apps.push({ key, usage });
-  };
-  const usageOf = (pairs: Array<[face: number, n: number]>): Counts => {
-    const u = [0, 0, 0, 0, 0, 0];
-    for (const [face, n] of pairs) u[face - 1] = n;
-    return u;
-  };
-  const get = (face: number) => counts[face - 1] ?? 0;
-
-  if (get(1) >= 1) use("single1", usageOf([[1, 1]]));
-  if (get(5) >= 1) use("single5", usageOf([[5, 1]]));
-  for (let f = 1; f <= 6; f += 1) {
-    if (get(f) >= 3) use(`triple${f}` as ComboKey, usageOf([[f, 3]]));
-    if (get(f) >= 4) use("fourOfAKind", usageOf([[f, 4]]));
-    if (get(f) >= 5) use("fiveOfAKind", usageOf([[f, 5]]));
-    if (get(f) >= 6) use("sixOfAKind", usageOf([[f, 6]]));
-    for (let g = 1; g <= 6; g += 1) {
-      if (g === f) continue;
-      if (get(f) >= 3 && get(g) >= 2) {
-        use(
-          "fullHouse",
-          usageOf([
-            [f, 3],
-            [g, 2]
-          ])
-        );
-      }
-      if (get(f) >= 4 && get(g) >= 2) {
-        use(
-          "fourOfAKindPlusPair",
-          usageOf([
-            [f, 4],
-            [g, 2]
-          ])
-        );
-      }
-      if (g > f && get(f) >= 3 && get(g) >= 3) {
-        use(
-          "twoTriplets",
-          usageOf([
-            [f, 3],
-            [g, 3]
-          ])
-        );
-      }
+  for (const combo of comboByKey.values()) {
+    if (!enabled(ruleset, combo.key)) continue;
+    for (const usage of usagesForCombo(combo.key, counts)) {
+      apps.push({ key: combo.key, usage });
     }
-  }
-  // Three distinct pairs (choose any 3 faces holding pairs).
-  const pairFaces = [1, 2, 3, 4, 5, 6].filter((f) => get(f) >= 2);
-  for (let i = 0; i < pairFaces.length; i += 1) {
-    for (let j = i + 1; j < pairFaces.length; j += 1) {
-      for (let k = j + 1; k < pairFaces.length; k += 1) {
-        use(
-          "threePairs",
-          usageOf([
-            [pairFaces[i]!, 2],
-            [pairFaces[j]!, 2],
-            [pairFaces[k]!, 2]
-          ])
-        );
-      }
-    }
-  }
-  for (const run of [
-    [1, 2, 3, 4, 5],
-    [2, 3, 4, 5, 6]
-  ]) {
-    if (run.every((f) => get(f) >= 1)) {
-      use("smallStraight", usageOf(run.map((f) => [f, 1])));
-    }
-  }
-  if (counts.every((c) => c >= 1)) {
-    use(
-      "largeStraight",
-      usageOf([1, 2, 3, 4, 5, 6].map((f) => [f, 1]))
-    );
   }
   return apps;
 }
@@ -175,14 +212,14 @@ export function bestScoreForCounts(
 
 const FACTORIAL = [1, 1, 2, 6, 24, 120, 720];
 
-function multinomialWeight(counts: Counts, diceCount: number): number {
+export function multinomialWeight(counts: Counts, diceCount: number): number {
   let denom = 1;
   for (const c of counts) denom *= FACTORIAL[c] ?? 1;
   return FACTORIAL[diceCount]! / denom / 6 ** diceCount;
 }
 
 /** Enumerate every face-count vector for `diceCount` dice. */
-function* countVectors(diceCount: number): Generator<Counts> {
+export function* countVectors(diceCount: number): Generator<Counts> {
   const counts = [0, 0, 0, 0, 0, 0];
   function* place(face: number, remaining: number): Generator<Counts> {
     if (face === 5) {

@@ -7,9 +7,11 @@ import {
   COMBOS,
   currentPlayer,
   turnDerived,
+  turnLikelihood,
   type ComboKey,
   type GameState
 } from "@farkle/engine";
+import { fmtLikelihood } from "../format.js";
 import OddsPanel from "./OddsPanel.js";
 import RollChips from "./RollChips.js";
 import ShareBadge from "./ShareBadge.js";
@@ -155,6 +157,10 @@ export default function GameScreen({
                           ? `💥 Farkle (-${t.penalty})`
                           : "💥 Farkle"
                         : `+${t.banked.toLocaleString()}`}
+                      <span className="turn-odds">
+                        {" "}
+                        🎲 {fmtLikelihood(turnLikelihood(t.rolls, t.events, t.farkled, game.ruleset))}
+                      </span>
                     </span>
                   </li>
                 );

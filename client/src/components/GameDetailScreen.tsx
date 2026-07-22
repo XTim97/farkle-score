@@ -1,6 +1,7 @@
-import { comboByKey, type ComboKey } from "@farkle/engine";
-import { useEffect, useState } from "react";
+import { comboByKey, turnLikelihood, type ComboKey } from "@farkle/engine";
+import { useEffect, useMemo, useState } from "react";
 import { fetchGameDetail, type GameDetail } from "../api.js";
+import { fmtLikelihood } from "../format.js";
 import RaceChart from "./RaceChart.js";
 
 interface Props {
@@ -20,6 +21,28 @@ export default function GameDetailScreen({ gameId, onBack }: Props) {
 
   const nameOf = (playerId: number) =>
     detail?.players.find((p) => p.playerId === playerId)?.name ?? "?";
+
+  const likelihoods = useMemo(() => {
+    if (!detail) return new Map<number, number>();
+    const map = new Map<number, number>();
+    for (const t of detail.turns) {
+      if (t.rolls && t.events.every((e) => e.rollIndex != null)) {
+        map.set(
+          t.turnNumber,
+          turnLikelihood(
+            t.rolls,
+            t.events.map((e) => ({
+              comboKey: e.comboKey as ComboKey,
+              rollIndex: e.rollIndex!
+            })),
+            t.farkled,
+            detail.ruleset
+          )
+        );
+      }
+    }
+    return map;
+  }, [detail]);
 
   return (
     <main className="screen">
@@ -75,6 +98,12 @@ export default function GameDetailScreen({ gameId, onBack }: Props) {
                         ? `💥 -${t.penalty.toLocaleString()}`
                         : "💥"
                       : `+${t.banked.toLocaleString()}`}
+                    {likelihoods.has(t.turnNumber) && (
+                      <span className="turn-odds">
+                        {" "}
+                        🎲 {fmtLikelihood(likelihoods.get(t.turnNumber)!)}
+                      </span>
+                    )}
                   </span>
                 </li>
               ))}

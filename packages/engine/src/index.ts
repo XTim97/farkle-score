@@ -31,4 +31,5 @@ export {
   rollVsBank,
   type OddsResult
 } from "./odds.js";
+export { comboSetProbability, turnLikelihood } from "./probability.js";
 export { DEFAULT_RULESET, validateRuleset, type Ruleset } from "./ruleset.js";

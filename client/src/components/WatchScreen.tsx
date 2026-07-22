@@ -1,5 +1,6 @@
-import { currentPlayer, turnDerived, type GameState } from "@farkle/engine";
+import { currentPlayer, turnDerived, turnLikelihood, type GameState } from "@farkle/engine";
 import { useEffect, useRef, useState } from "react";
+import { fmtLikelihood } from "../format.js";
 import OddsPanel from "./OddsPanel.js";
 import RollChips from "./RollChips.js";
 
@@ -150,6 +151,10 @@ export default function WatchScreen({ code, onExit }: Props) {
                           ? `💥 Farkle (-${t.penalty})`
                           : "💥 Farkle"
                         : `+${t.banked.toLocaleString()}`}
+                      <span className="turn-odds">
+                        {" "}
+                        🎲 {fmtLikelihood(turnLikelihood(t.rolls, t.events, t.farkled, game.ruleset))}
+                      </span>
                     </span>
                   </li>
                 );
