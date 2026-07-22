@@ -522,6 +522,16 @@ button.icon {
 .odds-strip.high { border-color: var(--danger); color: var(--danger); }
 .odds-strip.static { background: var(--bg); justify-content: center; font-weight: 600; }
 
+/* Non-interactive pinned rows above the Stats dropdown */
+.odds-strip.info {
+  border: 1px solid var(--border);
+  background: var(--panel);
+  cursor: default;
+}
+.odds-strip.info.low { border-color: #2f9c54; }
+.odds-strip.info.mid { border-color: var(--accent); }
+.odds-strip.info.high { border-color: var(--danger); color: var(--danger); }
+
 .odds-panel {
   background: var(--bg);
   border: 1px solid var(--border);

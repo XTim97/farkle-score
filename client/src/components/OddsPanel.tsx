@@ -11,7 +11,7 @@ import { useMemo, useState } from "react";
 
 const ordinal = (n: number) => `${n}${["th", "st", "nd", "rd"][n % 10 <= 3 ? n % 10 : 0]}`;
 
-/** Compact combo names for the collapsed top-odds strip. */
+/** Compact combo names for the top-odds row. */
 const SHORT_LABEL: Record<string, string> = {
   single1: "1s",
   single5: "5s",
@@ -32,14 +32,33 @@ const SHORT_LABEL: Record<string, string> = {
   largeStraight: "str6"
 };
 
-/** What the collapsed strip shows while it's this player's turn. */
-type OddsMode = "hidden" | "farkle" | "top" | "coach";
+/** Always-shown rows a player can enable; any combination. */
+type OddsItem = "farkle" | "top" | "coach";
+const ITEM_ORDER: OddsItem[] = ["farkle", "top", "coach"];
+const ITEM_LABEL: Record<OddsItem, string> = {
+  farkle: "Farkle %",
+  top: "Top odds",
+  coach: "Coach"
+};
 
 const PREFS_KEY = "farkle-odds-prefs";
 
-function loadPrefs(): Record<string, OddsMode> {
+function loadPrefs(): Record<string, OddsItem[]> {
   try {
-    return JSON.parse(localStorage.getItem(PREFS_KEY) ?? "{}") as Record<string, OddsMode>;
+    const raw = JSON.parse(localStorage.getItem(PREFS_KEY) ?? "{}") as Record<
+      string,
+      unknown
+    >;
+    const out: Record<string, OddsItem[]> = {};
+    for (const [id, value] of Object.entries(raw)) {
+      // Migrate the old single-mode string format.
+      if (typeof value === "string") {
+        out[id] = value === "hidden" ? [] : [value as OddsItem];
+      } else if (Array.isArray(value)) {
+        out[id] = value.filter((v): v is OddsItem => ITEM_ORDER.includes(v as OddsItem));
+      }
+    }
+    return out;
   } catch {
     return {};
   }
@@ -47,13 +66,13 @@ function loadPrefs(): Record<string, OddsMode> {
 
 interface Props {
   game: GameState;
-  /** scorer: per-player buried stats. viewer: always-on strip for spectators. */
+  /** scorer: per-player pinned rows + Stats dropdown. viewer: always-on strip. */
   variant?: "scorer" | "viewer";
 }
 
 export default function OddsPanel({ game, variant = "viewer" }: Props) {
   const [open, setOpen] = useState(false);
-  const [prefs, setPrefs] = useState<Record<string, OddsMode>>(loadPrefs);
+  const [prefs, setPrefs] = useState<Record<string, OddsItem[]>>(loadPrefs);
   const { turnScore, nextRollDice } = turnDerived(game);
   const odds = useMemo(
     () => (nextRollDice > 0 ? computeOdds(nextRollDice, game.ruleset) : null),
@@ -62,15 +81,18 @@ export default function OddsPanel({ game, variant = "viewer" }: Props) {
 
   if (!odds) {
     // Hot dice off and every die scored: nothing left to roll.
-    return <div className="odds-strip static">No dice left to roll. Bank it!</div>;
+    return <div className="odds-strip info static">No dice left to roll. Bank it!</div>;
   }
 
   const active = game.phase !== "finished" ? currentPlayer(game) : null;
-  const mode: OddsMode =
-    variant === "scorer" ? (active && prefs[active.id]) || "hidden" : "farkle";
+  const selected: OddsItem[] = variant === "scorer" && active ? (prefs[active.id] ?? []) : [];
 
-  function setMode(next: OddsMode) {
+  function toggleItem(item: OddsItem) {
     if (!active) return;
+    const current = prefs[active.id] ?? [];
+    const next = current.includes(item)
+      ? current.filter((i) => i !== item)
+      : [...current, item];
     const updated = { ...prefs, [active.id]: next };
     setPrefs(updated);
     localStorage.setItem(PREFS_KEY, JSON.stringify(updated));
@@ -90,52 +112,63 @@ export default function OddsPanel({ game, variant = "viewer" }: Props) {
     .sort((a, b) => b.p - a.p)
     .slice(0, 3);
 
-  let collapsedLabel;
-  let stripTier = "";
-  if (mode === "farkle") {
-    collapsedLabel = (
-      <span>
-        Farkle risk <strong>{risk.toFixed(1)}%</strong>
-        {variant === "viewer" && <> · roll EV ~{Math.round(odds.expectedRollScore)}</>}
-      </span>
-    );
-    stripTier = riskTier;
-  } else if (mode === "top") {
-    collapsedLabel = (
-      <span>
-        {topOutcomes.map((o, i) => (
-          <span key={o.label}>
-            {i > 0 && " · "}
-            {o.label} <strong>{(o.p * 100).toFixed(0)}%</strong>
+  const itemRow = (item: OddsItem) => {
+    if (item === "farkle") {
+      return (
+        <div key={item} className={`odds-strip info ${riskTier}`}>
+          <span>
+            Farkle risk <strong>{risk.toFixed(1)}%</strong>
           </span>
-        ))}
-      </span>
+        </div>
+      );
+    }
+    if (item === "top") {
+      return (
+        <div key={item} className={`odds-strip info ${riskTier}`}>
+          <span>
+            {topOutcomes.map((o, i) => (
+              <span key={o.label}>
+                {i > 0 && " · "}
+                {o.label} <strong>{(o.p * 100).toFixed(0)}%</strong>
+              </span>
+            ))}
+          </span>
+        </div>
+      );
+    }
+    return (
+      <div
+        key={item}
+        className={`odds-strip info ${turnScore === 0 || net >= 0 ? "low" : "high"}`}
+      >
+        <span>
+          {turnScore === 0
+            ? "🧭 Roll away"
+            : net >= 0
+              ? `🧭 Roll (+${Math.round(net)} avg)`
+              : `🧭 Bank (${Math.round(net)} avg)`}
+        </span>
+      </div>
     );
-    stripTier = riskTier;
-  } else if (mode === "coach") {
-    collapsedLabel = (
-      <span>
-        {turnScore === 0
-          ? "🧭 Roll away"
-          : net >= 0
-            ? `🧭 Roll (+${Math.round(net)} avg)`
-            : `🧭 Bank (${Math.round(net)} avg)`}
-      </span>
-    );
-    stripTier = turnScore === 0 || net >= 0 ? "low" : "high";
-  } else {
-    collapsedLabel = <span>📊 Stats</span>;
-  }
+  };
 
   return (
     <>
+      {variant === "scorer" && ITEM_ORDER.filter((i) => selected.includes(i)).map(itemRow)}
       <button
         type="button"
-        className={`odds-strip ${stripTier}`}
+        className={`odds-strip ${variant === "viewer" ? riskTier : ""}`}
         onClick={() => setOpen((o) => !o)}
         aria-expanded={open}
       >
-        {collapsedLabel}
+        {variant === "viewer" ? (
+          <span>
+            Farkle risk <strong>{risk.toFixed(1)}%</strong> · roll EV ~
+            {Math.round(odds.expectedRollScore)}
+          </span>
+        ) : (
+          <span>📊 Stats</span>
+        )}
         <span aria-hidden="true">{open ? "▾" : "▸"}</span>
       </button>
       {open && (
@@ -178,23 +211,18 @@ export default function OddsPanel({ game, variant = "viewer" }: Props) {
           </p>
           {variant === "scorer" && active && (
             <div className="odds-pref">
-              <span className="odds-pref-label">Always show for {active.name}:</span>
+              <span className="odds-pref-label">
+                Always show for {active.name} (pick any):
+              </span>
               <div className="first-picker">
-                {(
-                  [
-                    ["hidden", "Nothing"],
-                    ["farkle", "Farkle %"],
-                    ["top", "Top odds"],
-                    ["coach", "Coach"]
-                  ] as Array<[OddsMode, string]>
-                ).map(([value, label]) => (
+                {ITEM_ORDER.map((item) => (
                   <button
-                    key={value}
+                    key={item}
                     type="button"
-                    className={`pill ${mode === value ? "selected" : ""}`}
-                    onClick={() => setMode(value)}
+                    className={`pill ${selected.includes(item) ? "selected" : ""}`}
+                    onClick={() => toggleItem(item)}
                   >
-                    {label}
+                    {ITEM_LABEL[item]}
                   </button>
                 ))}
               </div>
