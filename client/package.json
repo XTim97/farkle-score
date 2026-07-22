@@ -11,6 +11,8 @@
   },
   "dependencies": {
     "@farkle/engine": "*",
+    "@fontsource-variable/nunito": "^5.3.0",
+    "@fontsource-variable/sora": "^5.3.0",
     "qrcode": "1.5.4",
     "react": "19.2.8",
     "react-dom": "19.2.8"
