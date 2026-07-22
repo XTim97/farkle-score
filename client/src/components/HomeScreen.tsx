@@ -4,6 +4,7 @@ interface Props {
   onRulesets: () => void;
   onStats: () => void;
   onHistory: () => void;
+  onWatch: () => void;
 }
 
 export default function HomeScreen({
@@ -11,7 +12,8 @@ export default function HomeScreen({
   onInstructions,
   onRulesets,
   onStats,
-  onHistory
+  onHistory,
+  onWatch
 }: Props) {
   return (
     <main className="screen home">
@@ -20,6 +22,9 @@ export default function HomeScreen({
       <div className="stack">
         <button type="button" className="primary big" onClick={onNewGame}>
           New Game
+        </button>
+        <button type="button" className="secondary" onClick={onWatch}>
+          📺 Watch a Game
         </button>
         <button type="button" className="secondary" onClick={onStats}>
           📊 Stats

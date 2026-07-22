@@ -11,7 +11,13 @@ import {
   type Ruleset
 } from "@farkle/engine";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { saveGame, type ApiPlayer, type ApiRuleset } from "./api.js";
+import {
+  createLiveSession,
+  pushLiveState,
+  saveGame,
+  type ApiPlayer,
+  type ApiRuleset
+} from "./api.js";
 import ArrangeOrderScreen from "./components/ArrangeOrderScreen.js";
 import GameScreen from "./components/GameScreen.js";
 import HomeScreen from "./components/HomeScreen.js";
@@ -22,6 +28,8 @@ import HistoryScreen from "./components/HistoryScreen.js";
 import RulesetEditor from "./components/RulesetEditor.js";
 import RulesetsScreen from "./components/RulesetsScreen.js";
 import StatsScreen from "./components/StatsScreen.js";
+import WatchJoinScreen from "./components/WatchJoinScreen.js";
+import WatchScreen from "./components/WatchScreen.js";
 import WinnerScreen from "./components/WinnerScreen.js";
 
 type Screen =
@@ -34,10 +42,17 @@ type Screen =
   | "ruleset-edit"
   | "stats"
   | "history"
-  | "game-detail";
+  | "game-detail"
+  | "watch-join"
+  | "watch-live";
+
+const initialWatchCode =
+  /^#watch=([A-Za-z0-9]+)$/.exec(location.hash)?.[1]?.toUpperCase() ?? null;
 
 export default function App() {
-  const [screen, setScreen] = useState<Screen>("home");
+  const [screen, setScreen] = useState<Screen>(initialWatchCode ? "watch-live" : "home");
+  const [watchCode, setWatchCode] = useState<string | null>(initialWatchCode);
+  const [liveCode, setLiveCode] = useState<string | null>(null);
   const [roster, setRoster] = useState<ApiPlayer[]>([]);
   const [game, setGame] = useState<GameState | null>(null);
   const [saveState, setSaveState] = useState<"idle" | "saved" | "failed">("idle");
@@ -61,7 +76,22 @@ export default function App() {
     startedAtRef.current = new Date().toISOString();
     setSaveState("idle");
     setScreen("game");
+    // One live session per table; a rematch reuses the code so viewers stay tuned.
+    setLiveCode((code) => {
+      if (!code) {
+        createLiveSession()
+          .then((r) => setLiveCode(r.code))
+          .catch(() => undefined);
+      }
+      return code;
+    });
   }, []);
+
+  useEffect(() => {
+    if (game && liveCode) {
+      pushLiveState(liveCode, game).catch(() => undefined);
+    }
+  }, [game, liveCode]);
 
   const apply = useCallback((fn: (g: GameState) => GameState) => {
     setGame((g) => {
@@ -90,6 +120,7 @@ export default function App() {
         onRulesets={() => setScreen("rulesets")}
         onStats={() => setScreen("stats")}
         onHistory={() => setScreen("history")}
+        onWatch={() => setScreen("watch-join")}
       />
     );
   }
@@ -126,6 +157,30 @@ export default function App() {
   }
   if (screen === "game-detail" && openGameId != null) {
     return <GameDetailScreen gameId={openGameId} onBack={() => setScreen("history")} />;
+  }
+  if (screen === "watch-join") {
+    return (
+      <WatchJoinScreen
+        onBack={() => setScreen("home")}
+        onJoin={(code) => {
+          setWatchCode(code);
+          history.replaceState(null, "", `#watch=${code}`);
+          setScreen("watch-live");
+        }}
+      />
+    );
+  }
+  if (screen === "watch-live" && watchCode) {
+    return (
+      <WatchScreen
+        code={watchCode}
+        onExit={() => {
+          history.replaceState(null, "", location.pathname);
+          setWatchCode(null);
+          setScreen("home");
+        }}
+      />
+    );
   }
   if (screen === "players") {
     return (
@@ -165,6 +220,7 @@ export default function App() {
     return (
       <GameScreen
         game={game}
+        liveCode={liveCode}
         onScore={(key: ComboKey) => apply((g) => scoreCombo(g, key))}
         onUndo={() => apply(undoLast)}
         onFarkle={() => apply(farkleTurn)}

@@ -117,6 +117,15 @@ export function deleteRuleset(id: number): Promise<void> {
   return request(`/api/rulesets/${id}`, { method: "DELETE" });
 }
 
+export function createLiveSession(): Promise<{ code: string }> {
+  return request("/api/live", { method: "POST" });
+}
+
+/** Push the scorer's authoritative game state to live viewers. */
+export function pushLiveState(code: string, game: GameState): Promise<unknown> {
+  return request(`/api/live/${code}`, { method: "PUT", body: JSON.stringify(game) });
+}
+
 /** Persist a finished game. Engine player ids are stringified server ids. */
 export function saveGame(game: GameState, startedAt: string): Promise<unknown> {
   return request("/api/games", {
