@@ -25,6 +25,7 @@ export default function GameScreen({ game, liveCode, onScore, onUndo, onFarkle, 
   const active = currentPlayer(game);
   const { turnScore, diceRemaining, hotDiceCount } = turnDerived(game);
   const combos = COMBOS.filter((c) => game.ruleset.comboPoints[c.key] != null);
+  const leaderScore = Math.max(...game.players.map((p) => p.score));
 
   return (
     <main className="screen game">
@@ -42,7 +43,12 @@ export default function GameScreen({ game, liveCode, onScore, onUndo, onFarkle, 
               {p.id === game.finalRoundTriggeredBy && "🏁 "}
               {p.name}
             </span>
-            <span className="sb-score">{p.score.toLocaleString()}</span>
+            <span className="sb-col">
+              <span className="sb-score">{p.score.toLocaleString()}</span>
+              {leaderScore > p.score && (
+                <span className="sb-behind">-{(leaderScore - p.score).toLocaleString()}</span>
+              )}
+            </span>
           </li>
         ))}
       </ul>

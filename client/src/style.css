@@ -386,6 +386,24 @@ button.icon {
   font-weight: 600;
 }
 
+.sb-col {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  line-height: 1.2;
+}
+
+.sb-behind {
+  font-size: 0.7rem;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.odds-place {
+  margin: 0;
+  font-size: 0.9rem;
+}
+
 .turn-panel {
   background: var(--panel);
   border: 1px solid var(--border);

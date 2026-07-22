@@ -75,6 +75,7 @@ export default function WatchScreen({ code, onExit }: Props) {
   const active = game.phase !== "finished" ? currentPlayer(game) : null;
   const { turnScore, diceRemaining, hotDiceCount } = turnDerived(game);
   const winner = game.players.find((p) => p.id === game.winnerId);
+  const leaderScore = Math.max(...game.players.map((p) => p.score));
 
   return (
     <main className="screen game">
@@ -103,7 +104,12 @@ export default function WatchScreen({ code, onExit }: Props) {
               {p.id === game.finalRoundTriggeredBy && "🏁 "}
               {p.name}
             </span>
-            <span className="sb-score">{p.score.toLocaleString()}</span>
+            <span className="sb-col">
+              <span className="sb-score">{p.score.toLocaleString()}</span>
+              {leaderScore > p.score && (
+                <span className="sb-behind">-{(leaderScore - p.score).toLocaleString()}</span>
+              )}
+            </span>
           </li>
         ))}
       </ul>

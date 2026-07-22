@@ -1,12 +1,15 @@
 import {
   comboByKey,
   computeOdds,
+  currentPlayer,
   rollVsBank,
   turnDerived,
   type ComboKey,
   type GameState
 } from "@farkle/engine";
 import { useMemo, useState } from "react";
+
+const ordinal = (n: number) => `${n}${["th", "st", "nd", "rd"][n % 10 <= 3 ? n % 10 : 0]}`;
 
 export default function OddsPanel({ game }: { game: GameState }) {
   const [open, setOpen] = useState(false);
@@ -51,6 +54,21 @@ export default function OddsPanel({ game }: { game: GameState }) {
                 ? `Rolling gains ~${Math.round(net)} points on average.`
                 : `Banking favored: rolling costs ~${Math.round(-net)} points on average.`}
           </p>
+          {turnScore > 0 &&
+            (() => {
+              const me = currentPlayer(game);
+              const projected = me.score + turnScore;
+              const rivals = game.players.filter((p) => p.id !== me.id);
+              const place = 1 + rivals.filter((p) => p.score > projected).length;
+              const leader = Math.max(...rivals.map((p) => p.score), 0);
+              return (
+                <p className="odds-place">
+                  🏦 Bank now → <strong>{ordinal(place)} place</strong> at{" "}
+                  {projected.toLocaleString()}
+                  {place > 1 && `, ${(leader - projected).toLocaleString()} behind`}
+                </p>
+              );
+            })()}
           <ul className="odds-list">
             {ranked.map(([key, p]) => (
               <li key={key}>
