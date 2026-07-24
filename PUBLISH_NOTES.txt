@@ -1,9 +1,16 @@
-Farkle Score v1.2.18
+Farkle Score v1.2.19
 
-Changes in this release:
-- Full House score changed from 750 to 850 points.
-- Small Straight score changed from 750 to 850 points.
-- Expanded the Player Instructions with a Scoring topic.
-- Added instructions for using scoring buttons, End Turn, Farkle, and Undo.
-- Added a complete list of all scoring combinations and point values.
-- Updated the app version and offline cache to v1.2.18.
+Changes:
+- After arranging table seating, players now choose how the first player is selected.
+- Roll One Die: each player taps Roll Die; highest result starts.
+- Ties automatically trigger a reroll for tied players only.
+- Randomize keeps the existing animated random starter selection.
+- Same Players now returns to the first-player method choice.
+
+Publishing from the permanent working folder:
+1. Copy these project files into C:\Projects\Farkle Score.
+2. Run npm install if dependencies are not installed.
+3. Run npm run dev and test locally.
+4. Run git add .
+5. Run git commit -m "Release v1.2.19"
+6. Run git push

@@ -1,4 +1,4 @@
-const CACHE_NAME = "farkle-cache-v1.2.18";
+const CACHE_NAME = "farkle-cache-v1.2.19";
 
 const urlsToCache = [
   "/farkle-score/",

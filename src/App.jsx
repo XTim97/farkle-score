@@ -4,6 +4,8 @@ import HomeScreen from "./components/HomeScreen";
 import PlayerSelectScreen from "./components/PlayerSelectScreen";
 import ArrangeOrderScreen from "./components/ArrangeOrderScreen";
 import RollingFirstPlayerScreen from "./components/RollingFirstPlayerScreen";
+import FirstPlayerMethodScreen from "./components/FirstPlayerMethodScreen";
+import RollForFirstPlayerScreen from "./components/RollForFirstPlayerScreen";
 import GameScreen from "./components/GameScreen";
 import InstructionsScreen from "./components/InstructionsScreen";
 
@@ -25,7 +27,10 @@ export default function App() {
     screen,
     selectedNames,
     starterMessage,
-    rollingPlayerName
+    rollingPlayerName,
+    rollResults,
+    tiedPlayerIds,
+    rollWinnerId
   } = state;
 
   return (
@@ -76,6 +81,24 @@ export default function App() {
         />
       )}
 
+      {screen === "firstPlayerMethod" && (
+        <FirstPlayerMethodScreen
+          onRollDice={actions.chooseRollForFirst}
+          onRandomize={actions.chooseRandomFirst}
+        />
+      )}
+
+      {screen === "rollForFirst" && (
+        <RollForFirstPlayerScreen
+          players={players}
+          rollResults={rollResults}
+          tiedPlayerIds={tiedPlayerIds}
+          rollWinnerId={rollWinnerId}
+          getPlayerName={actions.getPlayerName}
+          onRoll={actions.rollDieForPlayer}
+          onContinue={actions.finishRollForFirst}
+        />
+      )}
 
       {screen === "rollingFirstPlayer" && (
         <RollingFirstPlayerScreen rollingPlayerName={rollingPlayerName} />

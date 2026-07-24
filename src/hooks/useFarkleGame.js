@@ -29,6 +29,9 @@ export default function useFarkleGame() {
   const [tableOrder, setTableOrder] = useState([]);
   const [starterMessage, setStarterMessage] = useState("");
   const [rollingPlayerName, setRollingPlayerName] = useState("");
+  const [rollResults, setRollResults] = useState({});
+  const [tiedPlayerIds, setTiedPlayerIds] = useState([]);
+  const [rollWinnerId, setRollWinnerId] = useState(null);
   const [activePlayerIndex, setActivePlayerIndex] = useState(0);
   const [turnActions, setTurnActions] = useState({});
   const [gameOver, setGameOver] = useState(false);
@@ -60,6 +63,9 @@ export default function useFarkleGame() {
     setGameOver(false);
     setActivePlayerIndex(0);
     setRollingPlayerName("");
+    setRollResults({});
+    setTiedPlayerIds([]);
+    setRollWinnerId(null);
     resetFinalRound();
   }
 
@@ -180,7 +186,10 @@ export default function useFarkleGame() {
     setTurnActions({});
     setGameOver(false);
     resetFinalRound();
-    randomizeFirstPlayerWithDelay(tableOrderedPlayers);
+    setRollResults({});
+    setTiedPlayerIds([]);
+    setRollWinnerId(null);
+    setScreen("firstPlayerMethod");
   }
 
   function toggleSavedPlayer(name) {
@@ -304,8 +313,70 @@ export default function useFarkleGame() {
     setActivePlayerIndex(0);
     setTurnActions({});
     setGameOver(false);
+    setRollResults({});
+    setTiedPlayerIds([]);
+    setRollWinnerId(null);
     resetFinalRound();
+    setScreen("firstPlayerMethod");
+  }
+
+  function chooseRandomFirst() {
+    const tableOrderedPlayers = getOrderedPlayers(tableOrder, players);
     randomizeFirstPlayerWithDelay(tableOrderedPlayers);
+  }
+
+  function chooseRollForFirst() {
+    setRollResults({});
+    setTiedPlayerIds([]);
+    setRollWinnerId(null);
+    setScreen("rollForFirst");
+  }
+
+  function rollDieForPlayer(playerId) {
+    if (rollWinnerId) return;
+
+    const eligibleIds = tiedPlayerIds.length > 0
+      ? tiedPlayerIds
+      : players.map((player) => player.id);
+
+    if (!eligibleIds.includes(playerId) || rollResults[playerId]) return;
+
+    const nextResults = {
+      ...rollResults,
+      [playerId]: Math.floor(Math.random() * 6) + 1
+    };
+    setRollResults(nextResults);
+
+    const allEligibleRolled = eligibleIds.every((id) => nextResults[id]);
+    if (!allEligibleRolled) return;
+
+    const highestRoll = Math.max(...eligibleIds.map((id) => nextResults[id]));
+    const highestIds = eligibleIds.filter((id) => nextResults[id] === highestRoll);
+
+    if (highestIds.length === 1) {
+      setRollWinnerId(highestIds[0]);
+      setTiedPlayerIds([]);
+      return;
+    }
+
+    const clearedForTie = { ...nextResults };
+    highestIds.forEach((id) => {
+      delete clearedForTie[id];
+    });
+    setRollResults(clearedForTie);
+    setTiedPlayerIds(highestIds);
+  }
+
+  function finishRollForFirst() {
+    if (!rollWinnerId) return;
+
+    const tableOrderedPlayers = getOrderedPlayers(tableOrder, players);
+    const starterTableIndex = tableOrderedPlayers.findIndex(
+      (player) => player.id === rollWinnerId
+    );
+
+    if (starterTableIndex === -1) return;
+    finishRandomFirstPlayer(tableOrderedPlayers, starterTableIndex);
   }
 
   function addScoringAction(action) {
@@ -481,19 +552,26 @@ export default function useFarkleGame() {
       screen,
       selectedNames,
       starterMessage,
-      rollingPlayerName
+      rollingPlayerName,
+      rollResults,
+      tiedPlayerIds,
+      rollWinnerId
     },
     actions: {
       addSavedPlayer,
       addScoringAction,
       beginGame,
       continueToOrderSetup,
+      chooseRandomFirst,
+      chooseRollForFirst,
       farkle,
       getPlayerName,
       goHome,
       moveOrderPlayer,
       reorderOrderPlayer,
       removeSavedPlayer,
+      rollDieForPlayer,
+      finishRollForFirst,
       setNewPlayerName,
       showInstructions,
       startNewGame,

@@ -90,7 +90,7 @@ export default function ArrangeOrderScreen({
       ) : null}
 
       <button type="button" onClick={onBeginGame}>
-        Randomize First Player
+        Continue
       </button>
     </section>
   );
