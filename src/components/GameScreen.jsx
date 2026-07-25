@@ -27,6 +27,8 @@ export default function GameScreen({
       <section className="game-over-screen">
         <WinnerBanner
           leader={leader}
+          players={players}
+          getPlayerName={getPlayerName}
           onSamePlayers={onSamePlayers}
           onNewPlayers={onNewGame}
           onHome={onHome}

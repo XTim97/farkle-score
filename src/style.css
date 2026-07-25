@@ -839,3 +839,102 @@ button.danger {
     grid-column: 1 / -1;
   }
 }
+
+.highest-roller-button {
+  width: 100%;
+  min-height: 64px;
+  font-size: 1.2rem;
+  font-weight: 700;
+}
+
+/* Winner celebration — v1.2.21 */
+.winner {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.winner-content {
+  position: relative;
+  z-index: 2;
+}
+
+.congratulations {
+  margin: 0.25rem 0 1rem;
+  font-size: clamp(1.25rem, 4vw, 2rem);
+  font-weight: 900;
+}
+
+.fireworks {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.firework-particle {
+  --angle: 0deg;
+  --distance: 80px;
+  --delay: 0s;
+  --duration: 1.8s;
+  position: absolute;
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background: #ffffff;
+  opacity: 0;
+  animation: firework-burst var(--duration) ease-out var(--delay) 3;
+}
+
+.firework-particle:nth-child(4n + 1) { background: #ef4444; }
+.firework-particle:nth-child(4n + 2) { background: #2563eb; }
+.firework-particle:nth-child(4n + 3) { background: #16a34a; }
+.firework-particle:nth-child(4n) { background: #a855f7; }
+
+.burst-0 { left: 18%; top: 23%; }
+.burst-1 { left: 50%; top: 14%; }
+.burst-2 { left: 82%; top: 25%; }
+.burst-3 { left: 28%; top: 48%; }
+.burst-4 { left: 72%; top: 49%; }
+.burst-5 { left: 50%; top: 68%; }
+
+@keyframes firework-burst {
+  0% {
+    opacity: 0;
+    transform: rotate(var(--angle)) translateX(0) scale(0.4);
+  }
+  12% { opacity: 1; }
+  70% { opacity: 0.95; }
+  100% {
+    opacity: 0;
+    transform: rotate(var(--angle)) translateX(var(--distance)) scale(0.05);
+  }
+}
+
+.final-scores-row {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: nowrap;
+  gap: 1.25rem;
+  overflow-x: auto;
+  margin-top: 1.25rem;
+  padding-top: 0.9rem;
+  border-top: 2px solid rgba(66, 32, 6, 0.3);
+  font-size: clamp(0.95rem, 2.5vw, 1.1rem);
+  white-space: nowrap;
+}
+
+.final-score-item {
+  display: inline-flex;
+  gap: 0.35rem;
+  align-items: baseline;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .firework-particle {
+    animation: none;
+    display: none;
+  }
+}

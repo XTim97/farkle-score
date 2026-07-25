@@ -332,47 +332,10 @@ export default function useFarkleGame() {
     setScreen("rollForFirst");
   }
 
-  function rollDieForPlayer(playerId) {
-    if (rollWinnerId) return;
-
-    const eligibleIds = tiedPlayerIds.length > 0
-      ? tiedPlayerIds
-      : players.map((player) => player.id);
-
-    if (!eligibleIds.includes(playerId) || rollResults[playerId]) return;
-
-    const nextResults = {
-      ...rollResults,
-      [playerId]: Math.floor(Math.random() * 6) + 1
-    };
-    setRollResults(nextResults);
-
-    const allEligibleRolled = eligibleIds.every((id) => nextResults[id]);
-    if (!allEligibleRolled) return;
-
-    const highestRoll = Math.max(...eligibleIds.map((id) => nextResults[id]));
-    const highestIds = eligibleIds.filter((id) => nextResults[id] === highestRoll);
-
-    if (highestIds.length === 1) {
-      setRollWinnerId(highestIds[0]);
-      setTiedPlayerIds([]);
-      return;
-    }
-
-    const clearedForTie = { ...nextResults };
-    highestIds.forEach((id) => {
-      delete clearedForTie[id];
-    });
-    setRollResults(clearedForTie);
-    setTiedPlayerIds(highestIds);
-  }
-
-  function finishRollForFirst() {
-    if (!rollWinnerId) return;
-
+  function selectHighestRoller(playerId) {
     const tableOrderedPlayers = getOrderedPlayers(tableOrder, players);
     const starterTableIndex = tableOrderedPlayers.findIndex(
-      (player) => player.id === rollWinnerId
+      (player) => player.id === playerId
     );
 
     if (starterTableIndex === -1) return;
@@ -570,8 +533,7 @@ export default function useFarkleGame() {
       moveOrderPlayer,
       reorderOrderPlayer,
       removeSavedPlayer,
-      rollDieForPlayer,
-      finishRollForFirst,
+      selectHighestRoller,
       setNewPlayerName,
       showInstructions,
       startNewGame,

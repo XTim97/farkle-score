@@ -27,10 +27,7 @@ export default function App() {
     screen,
     selectedNames,
     starterMessage,
-    rollingPlayerName,
-    rollResults,
-    tiedPlayerIds,
-    rollWinnerId
+    rollingPlayerName
   } = state;
 
   return (
@@ -91,12 +88,8 @@ export default function App() {
       {screen === "rollForFirst" && (
         <RollForFirstPlayerScreen
           players={players}
-          rollResults={rollResults}
-          tiedPlayerIds={tiedPlayerIds}
-          rollWinnerId={rollWinnerId}
           getPlayerName={actions.getPlayerName}
-          onRoll={actions.rollDieForPlayer}
-          onContinue={actions.finishRollForFirst}
+          onSelectWinner={actions.selectHighestRoller}
         />
       )}
 

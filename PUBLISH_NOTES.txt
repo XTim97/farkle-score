@@ -1,16 +1,13 @@
-Farkle Score v1.2.19
+Farkle Score v1.2.21
 
-Changes:
-- After arranging table seating, players now choose how the first player is selected.
-- Roll One Die: each player taps Roll Die; highest result starts.
-- Ties automatically trigger a reroll for tied players only.
-- Randomize keeps the existing animated random starter selection.
-- Same Players now returns to the first-player method choice.
+Changes in this release:
+- Added animated fireworks to the winner screen.
+- Added a centered “Congratulations!” message beneath the winner.
+- Added every other player's final score in one horizontal line across the bottom of the winner panel.
+- Final scores are ordered from highest to lowest.
 
-Publishing from the permanent working folder:
-1. Copy these project files into C:\Projects\Farkle Score.
-2. Run npm install if dependencies are not installed.
-3. Run npm run dev and test locally.
-4. Run git add .
-5. Run git commit -m "Release v1.2.19"
-6. Run git push
+Publishing:
+Copy the contents of this folder into the permanent Farkle Score Git project, replacing the older files. Then commit and push the changes to GitHub.
+
+Note:
+The production build could not be run in the packaging environment because the Vite dependency was unavailable. The updated source files are included.
