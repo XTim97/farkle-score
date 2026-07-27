@@ -9,14 +9,7 @@ export default function HomeScreen({ appVersion, onNewGame, onInstructions, onPl
           New Game
         </button>
 
-        <button
-          type="button"
-          className="statistics-button secondary"
-          onClick={onPlayerStats}
-        >
-          📊 Player Statistics
-        </button>
-
+        
         <button
           type="button"
           className="instructions-button secondary"
