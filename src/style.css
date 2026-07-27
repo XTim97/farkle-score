@@ -378,17 +378,25 @@ button.danger {
 .score-buttons {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
-  gap: 0.55rem;
+  gap: 0.7rem;
   margin: 1rem 0;
 }
 
 .score-button {
-  min-height: 48px;
+  min-height: 56px;
+  padding: 0.85rem 0.8rem;
   text-align: center;
+  touch-action: manipulation;
+  -ms-touch-action: manipulation;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
   white-space: normal;
   background: var(--score-button-bg, #22c55e);
   color: var(--score-button-text, #06140a);
-  transition: transform 0.05s ease, filter 0.05s ease, background-color 0.05s ease;
+  transition: transform 0.04s ease, filter 0.04s ease, background-color 0.04s ease;
+  will-change: transform;
 }
 
 .score-button-label,
@@ -414,7 +422,8 @@ button.danger {
 
 .score-button:active:not(:disabled) {
   background: var(--score-button-bg-active, #16a34a);
-  transform: translateY(1px);
+  transform: translateY(1px) scale(0.97);
+  filter: brightness(0.9);
 }
 
 .score-button:disabled {
@@ -847,7 +856,7 @@ button.danger {
   font-weight: 700;
 }
 
-/* Winner celebration — v1.2.21 */
+/* Winner celebration — v1.2.22 */
 .winner {
   position: relative;
   overflow: hidden;
