@@ -81,7 +81,7 @@ export default function PlayerSelectScreen({
               }}
             />
 
-            <button type="button" onClick={handleAddSavedPlayer}>
+            <button type="button" className="add-player-button" onClick={handleAddSavedPlayer}>
               Add Player
             </button>
           </div>

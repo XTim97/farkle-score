@@ -6,11 +6,20 @@ const SCORE_BUTTON_STYLES = {
     100: { background: "#fde047", active: "#eab308", text: "#422006" }
   },
   "three-kind": {
-    200: { background: "#bae6fd", active: "#38bdf8", text: "#082f49" },
-    300: { background: "#7dd3fc", active: "#0ea5e9", text: "#082f49" },
-    400: { background: "#38bdf8", active: "#0284c7", text: "#082f49" },
-    500: { background: "#0ea5e9", active: "#0369a1", text: "#f0f9ff" },
-    600: { background: "#0284c7", active: "#075985", text: "#f0f9ff" }
+    200: { background: "#7dd3fc", active: "#38bdf8", text: "#082f49" },
+    300: { background: "#38bdf8", active: "#0ea5e9", text: "#082f49" },
+    400: { background: "#0ea5e9", active: "#0284c7", text: "#f0f9ff" },
+    500: { background: "#0284c7", active: "#0369a1", text: "#f0f9ff" },
+    600: { background: "#0369a1", active: "#075985", text: "#f0f9ff" }
+  },
+  "three-ones": {
+    300: { background: "#bae6fd", active: "#7dd3fc", text: "#082f49" }
+  },
+  "three-twos": {
+    200: { background: "#7dd3fc", active: "#38bdf8", text: "#082f49" }
+  },
+  "three-threes": {
+    300: { background: "#38bdf8", active: "#0ea5e9", text: "#082f49" }
   },
   "multi-kind": {
     1000: { background: "#d8b4fe", active: "#a855f7", text: "#3b0764" },
@@ -23,6 +32,12 @@ const SCORE_BUTTON_STYLES = {
   "three-two-kind": {
     850: { background: "#5cc5bd", active: "#2aa79e", text: "#073b37" }
   },
+  "three-pairs": {
+    1500: { background: "#b8c47a", active: "#9daa62", text: "#26310f" }
+  },
+  "large-straight": {
+    1500: { background: "#d946ef", active: "#c026d3", text: "#ffffff" }
+  },
   special: {
     1500: { background: "#fed7aa", active: "#fb923c", text: "#431407" },
     2500: { background: "#fb923c", active: "#ea580c", text: "#431407" }
@@ -30,6 +45,26 @@ const SCORE_BUTTON_STYLES = {
 };
 
 function getScoreButtonGroup(action) {
+  if (action.label === "Large Straight") {
+    return "large-straight";
+  }
+
+  if (action.label === "Three Pairs") {
+    return "three-pairs";
+  }
+
+  if (action.label === "Three 1s") {
+    return "three-ones";
+  }
+
+  if (action.label === "Three 2s") {
+    return "three-twos";
+  }
+
+  if (action.label === "Three 3s") {
+    return "three-threes";
+  }
+
   if (action.label === "Small Straight") {
     return "five-straight";
   }

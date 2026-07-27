@@ -109,7 +109,7 @@ const HELP_TOPICS = [
     body: (
       <>
         <p><strong>Same Players</strong> keeps the same table order and randomly chooses a new first player.</p>
-        <p><strong>New Players</strong> returns to player selection. <strong>Home</strong> returns to the opening screen.</p>
+        <p><strong>Select New Players</strong> returns to player selection. <strong>Home</strong> returns to the opening screen.</p>
       </>
     )
   }

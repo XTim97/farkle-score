@@ -83,7 +83,7 @@ export default function GameScreen({
 
             <button
               type="button"
-              className="secondary"
+              className="secondary undo-button"
               onClick={onUndo}
               disabled={gameOver || currentTurnActions.length === 0}
             >

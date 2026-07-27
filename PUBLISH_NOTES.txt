@@ -1,16 +1,13 @@
 Farkle Score v1.3.0
 
-New in this release:
-- Persistent career statistics for every saved player
-- Game statistics on the winner screen
-- Head-to-head records between players
-- Achievement badges and milestones
-- Player Statistics button on the Home screen
-- Pink New Player button on the Pick Players screen
-- Includes the improved iPad scoring-button touch response from v1.2.22
-
-Before publishing:
-1. npm.cmd install
-2. npm.cmd run build
-3. npm.cmd run dev
-4. Test a complete game and confirm statistics appear after the winner screen.
+Release highlights:
+- Players roll a physical die and select the player who rolled highest.
+- Random first-player selection remains available.
+- Same Players returns to the Choose Who Goes First screen.
+- Winner screen includes Congratulations, animated balloons, and all other final scores in one row.
+- Large Straight uses a fuchsia background.
+- Three Pairs uses a silver-gray background.
+- Three 1s, Three 2s, and Three 3s progress from lightest to darkest blue.
+- New Players button on the winner screen uses a pink background.
+- Increased touch targets and touch-response styling for iPad use.
+- App, package, and service-worker cache versions updated to v1.3.0.

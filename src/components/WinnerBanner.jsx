@@ -1,10 +1,11 @@
-const FIREWORK_PARTICLES = Array.from({ length: 48 }, (_, index) => ({
+const BALLOONS = Array.from({ length: 18 }, (_, index) => ({
   id: index,
-  burst: index % 6,
-  angle: (index % 8) * 45,
-  distance: 70 + (index % 4) * 16,
-  delay: (index % 6) * 0.7,
-  duration: 1.6 + (index % 3) * 0.25
+  left: 3 + ((index * 17) % 94),
+  delay: (index % 9) * 0.55,
+  duration: 5.8 + (index % 5) * 0.55,
+  size: 28 + (index % 4) * 8,
+  drift: -36 + (index % 7) * 12,
+  colorClass: `balloon-color-${(index % 6) + 1}`
 }));
 
 export default function WinnerBanner({
@@ -21,18 +22,21 @@ export default function WinnerBanner({
 
   return (
     <section className="winner">
-      <div className="fireworks" aria-hidden="true">
-        {FIREWORK_PARTICLES.map((particle) => (
+      <div className="balloons" aria-hidden="true">
+        {BALLOONS.map((balloon) => (
           <span
-            key={particle.id}
-            className={`firework-particle burst-${particle.burst}`}
+            key={balloon.id}
+            className={`balloon ${balloon.colorClass}`}
             style={{
-              "--angle": `${particle.angle}deg`,
-              "--distance": `${particle.distance}px`,
-              "--delay": `${particle.delay}s`,
-              "--duration": `${particle.duration}s`
+              "--balloon-left": `${balloon.left}%`,
+              "--balloon-delay": `${balloon.delay}s`,
+              "--balloon-duration": `${balloon.duration}s`,
+              "--balloon-size": `${balloon.size}px`,
+              "--balloon-drift": `${balloon.drift}px`
             }}
-          />
+          >
+            <span className="balloon-string" />
+          </span>
         ))}
       </div>
 
@@ -51,8 +55,8 @@ export default function WinnerBanner({
             🎲 Same Players
           </button>
 
-          <button type="button" className="secondary" onClick={onNewPlayers}>
-            👥 New Players
+          <button type="button" className="winner-new-players" onClick={onNewPlayers}>
+            👥 Select New Players
           </button>
 
           <button type="button" className="secondary" onClick={onHome}>
