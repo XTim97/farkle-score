@@ -947,3 +947,15 @@ button.danger {
     display: none;
   }
 }
+button.secondary.new-player-button {
+  background: #ff69b4 !important;
+  color: #000 !important;
+}
+
+button.secondary.new-player-button:hover {
+  background: #e754a3 !important;
+}
+
+button.secondary.new-player-button:active {
+  background: #d94694 !important;
+}
