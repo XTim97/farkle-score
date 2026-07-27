@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { PLAYERS_MIN, PLAYERS_MAX, WINNING_SCORE } from "../constants";
 import {
   makePlayer,
@@ -12,6 +12,7 @@ import {
   getPlayerName,
   getTurnScore
 } from "../utils/gameHelpers";
+import { readPlayerStats, recordCompletedGame } from "../utils/playerStats";
 
 const defaultFinalRound = {
   active: false,
@@ -36,6 +37,8 @@ export default function useFarkleGame() {
   const [turnActions, setTurnActions] = useState({});
   const [gameOver, setGameOver] = useState(false);
   const [finalRound, setFinalRound] = useState(defaultFinalRound);
+  const [playerStats, setPlayerStats] = useState(readPlayerStats);
+  const [gameStatsRecorded, setGameStatsRecorded] = useState(false);
 
   const activePlayer = players[activePlayerIndex];
   const leader = useMemo(() => getLeader(players), [players]);
@@ -46,6 +49,13 @@ export default function useFarkleGame() {
 
   const currentTurnScore = getTurnScore(currentTurnActions);
   const orderedSetupPlayers = getOrderedPlayers(turnOrder, players);
+
+  useEffect(() => {
+    if (!gameOver || gameStatsRecorded || players.length === 0) return;
+
+    setPlayerStats((current) => recordCompletedGame(current, players));
+    setGameStatsRecorded(true);
+  }, [gameOver, gameStatsRecorded, players]);
 
   const finalRoundStarter = players.find(
     (player) => player.id === finalRound.triggeredById
@@ -61,6 +71,7 @@ export default function useFarkleGame() {
     setTableOrder([]);
     setTurnActions({});
     setGameOver(false);
+    setGameStatsRecorded(false);
     setActivePlayerIndex(0);
     setRollingPlayerName("");
     setRollResults({});
@@ -80,6 +91,11 @@ export default function useFarkleGame() {
 
   function showInstructions() {
     setScreen("instructions");
+  }
+
+  function showPlayerStats() {
+    setPlayerStats(readPlayerStats());
+    setScreen("playerStats");
   }
 
   function startNewGame() {
@@ -119,6 +135,7 @@ export default function useFarkleGame() {
     setActivePlayerIndex(0);
     setTurnActions({});
     setGameOver(false);
+    setGameStatsRecorded(false);
     resetFinalRound();
     setScreen("game");
   }
@@ -185,6 +202,7 @@ export default function useFarkleGame() {
     setActivePlayerIndex(0);
     setTurnActions({});
     setGameOver(false);
+    setGameStatsRecorded(false);
     resetFinalRound();
     setRollResults({});
     setTiedPlayerIds([]);
@@ -313,6 +331,7 @@ export default function useFarkleGame() {
     setActivePlayerIndex(0);
     setTurnActions({});
     setGameOver(false);
+    setGameStatsRecorded(false);
     setRollResults({});
     setTiedPlayerIds([]);
     setRollWinnerId(null);
@@ -511,6 +530,7 @@ export default function useFarkleGame() {
       newPlayerName,
       orderedSetupPlayers,
       players,
+      playerStats,
       savedPlayers,
       screen,
       selectedNames,
@@ -536,6 +556,7 @@ export default function useFarkleGame() {
       selectHighestRoller,
       setNewPlayerName,
       showInstructions,
+      showPlayerStats,
       startNewGame,
       startNewGameWithCurrentPlayers,
       toggleSavedPlayer,

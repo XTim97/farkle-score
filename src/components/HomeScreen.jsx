@@ -1,4 +1,4 @@
-export default function HomeScreen({ appVersion, onNewGame, onInstructions }) {
+export default function HomeScreen({ appVersion, onNewGame, onInstructions, onPlayerStats }) {
   return (
     <section className="home-screen">
       <h1>Farkle Score</h1>
@@ -7,6 +7,14 @@ export default function HomeScreen({ appVersion, onNewGame, onInstructions }) {
       <div className="home-actions">
         <button type="button" className="new-game-button" onClick={onNewGame}>
           New Game
+        </button>
+
+        <button
+          type="button"
+          className="statistics-button secondary"
+          onClick={onPlayerStats}
+        >
+          📊 Player Statistics
         </button>
 
         <button

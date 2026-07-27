@@ -1,22 +1,16 @@
-Farkle Score v1.2.22
+Farkle Score v1.3.0
 
-Changes in this release:
-- Added animated fireworks to the winner screen.
-- Added a centered “Congratulations!” message beneath the winner.
-- Added every other player's final score in one horizontal line across the bottom of the winner panel.
-- Final scores are ordered from highest to lowest.
+New in this release:
+- Persistent career statistics for every saved player
+- Game statistics on the winner screen
+- Head-to-head records between players
+- Achievement badges and milestones
+- Player Statistics button on the Home screen
+- Pink New Player button on the Pick Players screen
+- Includes the improved iPad scoring-button touch response from v1.2.22
 
-Publishing:
-Copy the contents of this folder into the permanent Farkle Score Git project, replacing the older files. Then commit and push the changes to GitHub.
-
-Note:
-The production build could not be run in the packaging environment because the Vite dependency was unavailable. The updated source files are included.
-
-
-Touch reliability improvements:
-- Increased scoring-button touch targets.
-- Added more spacing between scoring buttons.
-- Added touch-action: manipulation for iPad/Safari.
-- Disabled text selection, touch callouts, and tap-highlight interference.
-- Added faster, clearer pressed feedback.
-- Changes apply only to scoring buttons.
+Before publishing:
+1. npm.cmd install
+2. npm.cmd run build
+3. npm.cmd run dev
+4. Test a complete game and confirm statistics appear after the winner screen.

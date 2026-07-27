@@ -8,6 +8,7 @@ import FirstPlayerMethodScreen from "./components/FirstPlayerMethodScreen";
 import RollForFirstPlayerScreen from "./components/RollForFirstPlayerScreen";
 import GameScreen from "./components/GameScreen";
 import InstructionsScreen from "./components/InstructionsScreen";
+import PlayerStatsScreen from "./components/PlayerStatsScreen";
 
 export default function App() {
   const { state, actions } = useFarkleGame();
@@ -23,6 +24,7 @@ export default function App() {
     newPlayerName,
     orderedSetupPlayers,
     players,
+    playerStats,
     savedPlayers,
     screen,
     selectedNames,
@@ -47,11 +49,16 @@ export default function App() {
           appVersion={APP_VERSION}
           onNewGame={actions.startNewGame}
           onInstructions={actions.showInstructions}
+          onPlayerStats={actions.showPlayerStats}
         />
       )}
 
       {screen === "instructions" && (
         <InstructionsScreen onBack={actions.goHome} />
+      )}
+
+      {screen === "playerStats" && (
+        <PlayerStatsScreen playerStats={playerStats} onBack={actions.goHome} />
       )}
 
       {screen === "selectPlayers" && (
