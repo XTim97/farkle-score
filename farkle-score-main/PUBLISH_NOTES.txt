@@ -1,0 +1,13 @@
+Farkle Score v1.3.0
+
+Release highlights:
+- Players roll a physical die and select the player who rolled highest.
+- Random first-player selection remains available.
+- Same Players returns to the Choose Who Goes First screen.
+- Winner screen includes Congratulations, animated balloons, and all other final scores in one row.
+- Large Straight uses a fuchsia background.
+- Three Pairs uses a silver-gray background.
+- Three 1s, Three 2s, and Three 3s progress from lightest to darkest blue.
+- New Players button on the winner screen uses a pink background.
+- Increased touch targets and touch-response styling for iPad use.
+- App, package, and service-worker cache versions updated to v1.3.0.
