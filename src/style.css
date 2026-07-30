@@ -343,14 +343,22 @@ button.undo-button:active:not(:disabled) {
 }
 
 .mini-score {
-  display: grid;
-  gap: 0.25rem;
-  background: #1e293b;
-  border: 1px solid #334155;
-  border-radius: 14px;
-  padding: 0.75rem;
-  text-align: center;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:1rem;
+  background:#1e293b;
+  border:1px solid #334155;
+  border-radius:14px;
+  padding:1rem 1.25rem;
 }
+
+.mini-score strong{
+  font-size:clamp(1.3rem,2.4vw,2rem);
+  font-weight:800;
+}
+
+
 
 .mini-score.active-player {
   border-color: #22c55e;
@@ -358,10 +366,11 @@ button.undo-button:active:not(:disabled) {
 }
 
 .mini-score span {
-  color: #86efac;
-  font-size: 1.25rem;
-  font-weight: 900;
+  color:#86efac;
+  font-size:clamp(1.6rem,3vw,2.4rem);
+  font-weight:900;
 }
+
 
 .turn-screen {
   display: grid;
@@ -733,17 +742,20 @@ button.undo-button:active:not(:disabled) {
 
   .mini-scoreboard {
     gap: 0.65rem;
-    margin-bottom: 0.9rem;
+    margin-bottom: 0.75rem;
   }
 
   .mini-score {
-    min-height: 72px;
-    padding: 0.55rem 0.7rem;
-    font-size: 1rem;
+    min-height: 54px;
+    padding: 0.35rem 0.85rem;
+  }
+
+  .mini-score strong {
+    font-size: clamp(1.45rem, 2.6vw, 2.15rem);
   }
 
   .mini-score span {
-    font-size: 1.3rem;
+    font-size: clamp(1.7rem, 3vw, 2.5rem);
   }
 
   .active-turn-header {
