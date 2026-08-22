@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { APP_VERSION, PLAYERS_MIN } from "./constants";
 import useFarkleGame from "./hooks/useFarkleGame";
 import HomeScreen from "./components/HomeScreen";
@@ -9,17 +9,18 @@ import FirstPlayerMethodScreen from "./components/FirstPlayerMethodScreen";
 import RollForFirstPlayerScreen from "./components/RollForFirstPlayerScreen";
 import GameScreen from "./components/GameScreen";
 import InstructionsScreen from "./components/InstructionsScreen";
+import { supabase } from "./supabase";
 
 const STATS_KEY = "farklePlayerStatisticsV1";
 const PLAYER_COLORS = [
-  "#facc15", // yellow
-  "#38bdf8", // sky blue
-  "#f472b6", // pink
-  "#a3e635", // lime
-  "#fb923c", // orange
-  "#c084fc", // violet
-  "#2dd4bf", // teal
-  "#f87171"  // coral
+  "#facc15",
+  "#38bdf8",
+  "#f472b6",
+  "#a3e635",
+  "#fb923c",
+  "#c084fc",
+  "#2dd4bf",
+  "#f87171"
 ];
 
 const EMPTY_STATS = {
@@ -53,6 +54,26 @@ function normalizeStats(stats = {}) {
   return { ...EMPTY_STATS, ...stats };
 }
 
+function hasAnyStatistics(stats) {
+  const normalized = normalizeStats(stats);
+  return (
+    normalized.gamesPlayed > 0 ||
+    normalized.gamesWon > 0 ||
+    normalized.highestFinalScore > 0 ||
+    normalized.farkles > 0 ||
+    normalized.highestSingleTurn > 0 ||
+    normalized.fullHouse > 0 ||
+    normalized.fourOfAKind > 0 ||
+    normalized.fiveOfAKind > 0 ||
+    normalized.sixOfAKind > 0 ||
+    normalized.threePairs > 0 ||
+    normalized.fourOfAKindPlusPair > 0 ||
+    normalized.twoTriplets > 0 ||
+    normalized.smallStraight > 0 ||
+    normalized.largeStraight > 0
+  );
+}
+
 function combinationKey(label) {
   const text = String(label || "").toLowerCase().replace(/[–—]/g, "-");
   if (text.includes("full house")) return "fullHouse";
@@ -67,15 +88,45 @@ function combinationKey(label) {
   return null;
 }
 
-function StatisticsScreen({ savedPlayers, statistics, onBack }) {
+function rowToStats(row) {
+  return {
+    gamesPlayed: row.games_played ?? 0,
+    gamesWon: row.games_won ?? 0,
+    highestFinalScore: row.highest_final_score ?? 0,
+    farkles: row.farkles ?? 0,
+    highestSingleTurn: row.highest_single_turn ?? 0,
+    fullHouse: row.full_house ?? 0,
+    fourOfAKind: row.four_of_a_kind ?? 0,
+    fiveOfAKind: row.five_of_a_kind ?? 0,
+    sixOfAKind: row.six_of_a_kind ?? 0,
+    threePairs: row.three_pairs ?? 0,
+    fourOfAKindPlusPair: row.four_of_a_kind_plus_pair ?? 0,
+    twoTriplets: row.two_triplets ?? 0,
+    smallStraight: row.small_straight ?? 0,
+    largeStraight: row.large_straight ?? 0,
+    colorIndex: row.color_index ?? 0
+  };
+}
+
+function StatisticsScreen({
+  savedPlayers,
+  statistics,
+  syncLoading,
+  syncMessage,
+  onRefresh,
+  onBack
+}) {
   const [selectedPlayer, setSelectedPlayer] = useState(null);
+  const availablePlayers = useMemo(
+    () => [...new Set([...savedPlayers, ...Object.keys(statistics)])].sort((a, b) => a.localeCompare(b)),
+    [savedPlayers, statistics]
+  );
 
   if (selectedPlayer) {
     const stats = normalizeStats(statistics[selectedPlayer]);
-    const color = PLAYER_COLORS[stats.colorIndex % PLAYER_COLORS.length];
 
     return (
-      <section className="panel statistics-screen" style={{ "--player-stat-color": color }}>
+      <section className="panel statistics-screen">
         <button type="button" className="secondary statistics-back" onClick={() => setSelectedPlayer(null)}>
           ← Back
         </button>
@@ -103,28 +154,32 @@ function StatisticsScreen({ savedPlayers, statistics, onBack }) {
   return (
     <section className="panel statistics-screen">
       <button type="button" className="secondary statistics-back" onClick={onBack}>← Back</button>
-      <h1>Player Statistics</h1>
-      <p className="statistics-help">Choose a player to view statistics.</p>
+      <div className="statistics-heading-row">
+        <div>
+          <h1>Player Statistics</h1>
+          <p className="statistics-help">Choose a player to view synchronized statistics.</p>
+        </div>
+        <div className="statistics-account-actions">
+          <button type="button" className="secondary" onClick={onRefresh} disabled={syncLoading}>
+            {syncLoading ? "Refreshing..." : "Refresh"}
+          </button>
+        </div>
+      </div>
+      {syncMessage && <p className="statistics-sync-message">{syncMessage}</p>}
       <div className="statistics-player-list">
-        {savedPlayers.length === 0 ? (
-          <p className="empty-state">No saved players yet.</p>
+        {availablePlayers.length === 0 ? (
+          <p className="empty-state">No player statistics yet.</p>
         ) : (
-          savedPlayers.map((name, index) => {
-            const stats = normalizeStats(statistics[name]);
-            const colorIndex = Number.isInteger(stats.colorIndex) ? stats.colorIndex : index;
-            const color = PLAYER_COLORS[colorIndex % PLAYER_COLORS.length];
-            return (
-              <button
-                key={name}
-                type="button"
-                className="statistics-player-button"
-                style={{ "--player-stat-color": color }}
-                onClick={() => setSelectedPlayer(name)}
-              >
-                {name}
-              </button>
-            );
-          })
+          availablePlayers.map((name) => (
+            <button
+              key={name}
+              type="button"
+              className="statistics-player-button"
+              onClick={() => setSelectedPlayer(name)}
+            >
+              {name}
+            </button>
+          ))
         )}
       </div>
     </section>
@@ -154,9 +209,11 @@ export default function App() {
 
   const [showStatistics, setShowStatistics] = useState(false);
   const [statistics, setStatistics] = useState(readStatistics);
+  const [syncLoading, setSyncLoading] = useState(false);
+  const [syncMessage, setSyncMessage] = useState("");
   const gameRecordedRef = useRef(false);
 
-  function saveStatistics(updater) {
+  function saveLocalStatistics(updater) {
     setStatistics((current) => {
       const next = updater(current);
       localStorage.setItem(STATS_KEY, JSON.stringify(next));
@@ -164,9 +221,9 @@ export default function App() {
     });
   }
 
-  function updatePlayerStats(playerName, updater, colorIndex = 0) {
+  function updateLocalPlayerStats(playerName, updater, colorIndex = 0) {
     if (!playerName) return;
-    saveStatistics((current) => {
+    saveLocalStatistics((current) => {
       const existing = normalizeStats(current[playerName]);
       return {
         ...current,
@@ -174,6 +231,85 @@ export default function App() {
       };
     });
   }
+
+  async function callStatsRpc(playerName, delta = {}) {
+    if (!playerName) return;
+
+    const { error } = await supabase.rpc("update_farkle_player_stats", {
+      p_player_name: playerName,
+      p_games_played_delta: delta.gamesPlayed || 0,
+      p_games_won_delta: delta.gamesWon || 0,
+      p_farkles_delta: delta.farkles || 0,
+      p_full_house_delta: delta.fullHouse || 0,
+      p_four_of_a_kind_delta: delta.fourOfAKind || 0,
+      p_five_of_a_kind_delta: delta.fiveOfAKind || 0,
+      p_six_of_a_kind_delta: delta.sixOfAKind || 0,
+      p_three_pairs_delta: delta.threePairs || 0,
+      p_four_of_a_kind_plus_pair_delta: delta.fourOfAKindPlusPair || 0,
+      p_two_triplets_delta: delta.twoTriplets || 0,
+      p_small_straight_delta: delta.smallStraight || 0,
+      p_large_straight_delta: delta.largeStraight || 0,
+      p_highest_final_score: delta.highestFinalScore ?? null,
+      p_highest_single_turn: delta.highestSingleTurn ?? null,
+      p_color_index: delta.colorIndex ?? null
+    });
+
+    if (error) {
+      console.error("Could not sync Farkle statistics:", error);
+      setSyncMessage("Statistics were saved on this device, but cloud sync failed.");
+    } else {
+      setSyncMessage("Statistics synced.");
+    }
+  }
+
+  async function loadCloudStatistics({ migrateMissingLocal = false } = {}) {
+    setSyncLoading(true);
+    setSyncMessage("Loading synchronized statistics...");
+
+    const { data, error } = await supabase
+      .from("farkle_player_stats")
+      .select("player_name,games_played,games_won,highest_final_score,farkles,highest_single_turn,full_house,four_of_a_kind,five_of_a_kind,six_of_a_kind,three_pairs,four_of_a_kind_plus_pair,two_triplets,small_straight,large_straight,color_index")
+      .order("player_name", { ascending: true });
+
+    if (error) {
+      console.error("Could not load Farkle statistics:", error);
+      setSyncMessage("Could not load cloud statistics. Showing this device's saved copy.");
+      setSyncLoading(false);
+      return;
+    }
+
+    const cloudStats = {};
+    (data || []).forEach((row) => {
+      cloudStats[row.player_name] = rowToStats(row);
+    });
+
+    if (migrateMissingLocal) {
+      const localStats = readStatistics();
+      const missingEntries = Object.entries(localStats).filter(
+        ([name, stats]) => !cloudStats[name] && hasAnyStatistics(stats)
+      );
+
+      for (const [name, rawStats] of missingEntries) {
+        const stats = normalizeStats(rawStats);
+        await callStatsRpc(name, stats);
+      }
+
+      if (missingEntries.length > 0) {
+        setSyncLoading(false);
+        await loadCloudStatistics({ migrateMissingLocal: false });
+        return;
+      }
+    }
+
+    setStatistics(cloudStats);
+    localStorage.setItem(STATS_KEY, JSON.stringify(cloudStats));
+    setSyncMessage("Statistics are up to date across devices.");
+    setSyncLoading(false);
+  }
+
+  useEffect(() => {
+    void loadCloudStatistics({ migrateMissingLocal: true });
+  }, []);
 
   function resetGameStatisticsGuard() {
     gameRecordedRef.current = false;
@@ -199,7 +335,13 @@ export default function App() {
         if (key) combinationCounts[key] = (combinationCounts[key] || 0) + 1;
       });
 
-      updatePlayerStats(
+      const delta = {
+        ...combinationCounts,
+        highestSingleTurn: currentTurnScore,
+        colorIndex: activePlayerIndex % PLAYER_COLORS.length
+      };
+
+      updateLocalPlayerStats(
         playerName,
         (stats) => {
           const next = {
@@ -211,8 +353,10 @@ export default function App() {
           });
           return next;
         },
-        activePlayerIndex % PLAYER_COLORS.length
+        delta.colorIndex
       );
+
+      void callStatsRpc(playerName, delta);
     }
     actions.endTurn();
   }
@@ -220,11 +364,13 @@ export default function App() {
   function handleFarkle() {
     if (activePlayer) {
       const playerName = actions.getPlayerName(activePlayer, activePlayerIndex);
-      updatePlayerStats(
+      const colorIndex = activePlayerIndex % PLAYER_COLORS.length;
+      updateLocalPlayerStats(
         playerName,
         (stats) => ({ ...stats, farkles: stats.farkles + 1 }),
-        activePlayerIndex % PLAYER_COLORS.length
+        colorIndex
       );
+      void callStatsRpc(playerName, { farkles: 1, colorIndex });
     }
     actions.farkle();
   }
@@ -233,7 +379,7 @@ export default function App() {
     if (!gameOver || !leader || gameRecordedRef.current || players.length === 0) return;
     gameRecordedRef.current = true;
 
-    saveStatistics((current) => {
+    saveLocalStatistics((current) => {
       const next = { ...current };
       players.forEach((player, index) => {
         const name = actions.getPlayerName(player, index);
@@ -246,8 +392,14 @@ export default function App() {
           highestFinalScore: Math.max(stats.highestFinalScore, player.score || 0),
           colorIndex: index % PLAYER_COLORS.length
         };
+
+        void callStatsRpc(name, {
+          gamesPlayed: 1,
+          gamesWon: isWinner ? 1 : 0,
+          highestFinalScore: player.score || 0,
+          colorIndex: index % PLAYER_COLORS.length
+        });
       });
-      localStorage.setItem(STATS_KEY, JSON.stringify(next));
       return next;
     });
   }, [gameOver, leader, players]);
@@ -268,6 +420,9 @@ export default function App() {
         <StatisticsScreen
           savedPlayers={savedPlayers}
           statistics={statistics}
+          syncLoading={syncLoading}
+          syncMessage={syncMessage}
+          onRefresh={() => loadCloudStatistics({ migrateMissingLocal: false })}
           onBack={() => setShowStatistics(false)}
         />
       )}
