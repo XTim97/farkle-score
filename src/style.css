@@ -371,6 +371,31 @@ button.undo-button:active:not(:disabled) {
   font-weight:900;
 }
 
+/* Give every player a bright, consistent scoreboard color on the dark background. */
+.mini-score:nth-child(8n + 1) strong,
+.mini-score:nth-child(8n + 1) span { color: #facc15; } /* yellow */
+
+.mini-score:nth-child(8n + 2) strong,
+.mini-score:nth-child(8n + 2) span { color: #38bdf8; } /* sky blue */
+
+.mini-score:nth-child(8n + 3) strong,
+.mini-score:nth-child(8n + 3) span { color: #f472b6; } /* pink */
+
+.mini-score:nth-child(8n + 4) strong,
+.mini-score:nth-child(8n + 4) span { color: #a3e635; } /* lime */
+
+.mini-score:nth-child(8n + 5) strong,
+.mini-score:nth-child(8n + 5) span { color: #fb923c; } /* orange */
+
+.mini-score:nth-child(8n + 6) strong,
+.mini-score:nth-child(8n + 6) span { color: #c084fc; } /* violet */
+
+.mini-score:nth-child(8n + 7) strong,
+.mini-score:nth-child(8n + 7) span { color: #2dd4bf; } /* teal */
+
+.mini-score:nth-child(8n + 8) strong,
+.mini-score:nth-child(8n + 8) span { color: #f87171; } /* coral */
+
 
 .turn-screen {
   display: grid;
