@@ -12,6 +12,7 @@ export default function GameScreen({
   finalRound,
   finalRoundStarter,
   gameOver,
+  sessionWins = {},
   leader,
   getPlayerName,
   onAddScoringAction,
@@ -27,12 +28,39 @@ export default function GameScreen({
       <section className="game-over-screen">
         <WinnerBanner
           leader={leader}
-          players={players}
+          players={[leader]}
           getPlayerName={getPlayerName}
           onSamePlayers={onSamePlayers}
           onNewPlayers={onNewGame}
           onHome={onHome}
         />
+        <aside
+          aria-label="Session wins"
+          style={{
+            margin: "20px auto",
+            padding: "20px",
+            width: "100%",
+            maxWidth: "520px",
+            boxSizing: "border-box",
+            border: "2px solid #ffd700",
+            borderRadius: "12px",
+            background: "#171717",
+            color: "#fff"
+          }}
+        >
+          <h2 style={{ margin: "0 0 16px", color: "#ffd700", textAlign: "center" }}>
+            Session Wins
+          </h2>
+          {players.map((player, index) => (
+            <div
+              key={player.id}
+              style={{ display: "flex", justifyContent: "space-between", gap: "20px", padding: "8px 0", fontSize: "1.25rem" }}
+            >
+              <span>{getPlayerName(player, index)}</span>
+              <strong style={{ color: "#ffd700" }}>{sessionWins[player.id] || 0}</strong>
+            </div>
+          ))}
+        </aside>
       </section>
     );
   }

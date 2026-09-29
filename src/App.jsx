@@ -24,6 +24,7 @@ export default function App() {
     orderedSetupPlayers,
     players,
     savedPlayers,
+    sessionWins,
     screen,
     selectedNames,
     starterMessage,
@@ -108,6 +109,7 @@ export default function App() {
             finalRoundStarter={finalRoundStarter}
             gameOver={gameOver}
             leader={leader}
+            sessionWins={sessionWins}
             getPlayerName={actions.getPlayerName}
             onAddScoringAction={actions.addScoringAction}
             onEndTurn={actions.endTurn}

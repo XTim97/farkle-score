@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { PLAYERS_MIN, PLAYERS_MAX, WINNING_SCORE } from "../constants";
 import {
   makePlayer,
@@ -35,10 +35,25 @@ export default function useFarkleGame() {
   const [activePlayerIndex, setActivePlayerIndex] = useState(0);
   const [turnActions, setTurnActions] = useState({});
   const [gameOver, setGameOver] = useState(false);
+  const [sessionWins, setSessionWins] = useState({});
+  const winRecorded = useRef(false);
   const [finalRound, setFinalRound] = useState(defaultFinalRound);
 
   const activePlayer = players[activePlayerIndex];
   const leader = useMemo(() => getLeader(players), [players]);
+
+  useEffect(() => {
+    if (!gameOver) {
+      winRecorded.current = false;
+      return;
+    }
+    if (!leader || winRecorded.current) return;
+    winRecorded.current = true;
+    setSessionWins((current) => ({
+      ...current,
+      [leader.id]: (current[leader.id] || 0) + 1
+    }));
+  }, [gameOver, leader]);
 
   const currentTurnActions = activePlayer
     ? turnActions[activePlayer.id] || []
@@ -56,6 +71,8 @@ export default function useFarkleGame() {
   }
 
   function resetGameState() {
+    setSessionWins({});
+    winRecorded.current = false;
     setPlayers([]);
     setTurnOrder([]);
     setTableOrder([]);
@@ -507,6 +524,7 @@ export default function useFarkleGame() {
       finalRound,
       finalRoundStarter,
       gameOver,
+      sessionWins,
       leader,
       newPlayerName,
       orderedSetupPlayers,
